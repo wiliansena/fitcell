@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container-fluid mt-3">
+
+  <h4 class="mb-3">Compra de Estoque</h4>
+
+  <form method="POST">
+    {{ form.csrf_token }}
+
+    <!-- Dados da compra -->
+    <div class="row g-3 mb-3">
+
+      <div class="col-md-6">
+        {{ form.fornecedor_id.label(class="form-label") }}
+        {{ form.fornecedor_id(class="form-control select2") }}
+      </div>
+
+      <div class="col-md-6">
+        {{ form.observacao.label(class="form-label") }}
+        {{ form.observacao(class="form-control") }}
+      </div>
+
+    </div>
+
+    <hr>
+
+    <!-- Itens da compra -->
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <h5 class="mb-0">Itens da Compra</h5>
+
+      <button type="button" class="btn btn-sm btn-success" onclick="adicionarLinha()">
+        <i class="fas fa-plus"></i> Adicionar Peça
+      </button>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table table-bordered table-hover align-middle" id="tabela-itens">
+        <thead class="table-dark">
+          <tr>
+            <th width="40%">Peça</th>
+            <th width="15%">Quantidade</th>
+            <th width="20%">Custo Unitário</th>
+            <th width="10%">Ação</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <!-- linhas via JS -->
+        </tbody>
+      </table>
+    </div>
+
+    <input type="hidden" name="itens" id="itens">
+
+    <hr>
+
+    <div class="d-flex gap-2">
+      <button class="btn btn-success">
+        <i class="fas fa-check"></i> Salvar Compra
+      </button>
+
+      <a href="{{ url_for('routes.fitcell_listar_compras_estoque') }}"
+         class="btn btn-outline-secondary">
+        Cancelar
+      </a>
+    </div>
+
+  </form>
+
+</div>
+
+<script>
+  function adicionarLinha() {
+
+    const tbody = document.querySelector("#tabela-itens tbody");
+
+    const tr = document.createElement("tr");
+
+    tr.innerHTML = `
+      <td>
+        <select name="peca_id[]" class="form-control select2" required>
+          <option value="">Selecione a peça</option>
+          {% for p in pecas %}
+            <option value="{{ p.id }}">
+             COD: {{ p.codigo_interno }} - NOME: {{ p.nome }} - {{ p.qualidade }} - {{ p.preco_venda }}
+            </option>
+          {% endfor %}
+        </select>
+      </td>
+
+      <td>
+        <input type="number"
+               name="quantidade[]"
+               class="form-control"
+               min="1"
+               required>
+      </td>
+
+      <td>
+        <input type="number"
+               name="custo_unitario[]"
+               class="form-control"
+               step="0.01"
+               min="0"
+               required>
+      </td>
+
+      <td class="text-center">
+        <button type="button"
+                class="btn btn-sm btn-danger"
+                onclick="this.closest('tr').remove()">
+          <i class="fas fa-trash"></i>
+        </button>
+      </td>
+    `;
+
+    tbody.appendChild(tr);
+    inicializarSelect2();
+  }
+
+  function inicializarSelect2() {
+    $('.select2').select2({
+      theme: 'bootstrap-5',
+      width: '100%'
+    });
+  }
+
+  $(document).ready(function () {
+    inicializarSelect2();
+  });
+</script>
+
+{% endblock %}

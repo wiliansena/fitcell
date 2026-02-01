@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container-fluid mt-3">
+
+  <h4 class="mb-3"><i class="fa-solid fa-cart-shopping"></i> Vendas de Peças</h4>
+
+  <!-- Ações -->
+  <div class="d-flex gap-2 mb-3 flex-wrap">
+
+    <a href="{{ url_for('routes.fitcell_nova_venda_peca') }}" class="btn btn-success">
+      <i class="fas fa-plus"></i> Nova Venda
+    </a>
+
+    <a href="{{ url_for(
+          'routes.fitcell_relatorio_vendas_pecas_pdf',
+          data_ini=data_ini,
+          data_fim=data_fim
+        ) }}" target="_blank" class="btn btn-danger">
+      <i class="fas fa-file-pdf"></i> Relatório
+    </a>
+
+    <a href="{{ url_for(
+      'routes.fitcell_relatorio_compra_venda_pdf',
+      data_ini=data_ini,
+      data_fim=data_fim
+    ) }}" target="_blank" class="btn btn-outline-danger">
+      <i class="fas fa-file-pdf"></i> Compra × Venda
+    </a>
+
+
+  </div>
+
+  <!-- Filtros -->
+  <form method="GET" class="row g-2 mb-3">
+
+    <div class="col-md-3">
+      <input type="date" name="data_ini" value="{{ data_ini or '' }}" class="form-control form-control-sm">
+    </div>
+
+    <div class="col-md-3">
+      <input type="date" name="data_fim" value="{{ data_fim or '' }}" class="form-control form-control-sm">
+    </div>
+
+    <div class="col-md-4">
+      <div class="input-group input-group-sm">
+        <span class="input-group-text">
+          <i class="fas fa-search"></i>
+        </span>
+
+        <input type="text" name="busca" value="{{ busca }}" class="form-control"
+          placeholder="Buscar cliente ou telefone">
+
+        {% if busca or data_ini or data_fim %}
+        <a href="{{ url_for('routes.fitcell_listar_vendas_pecas') }}" class="btn btn-outline-secondary"
+          title="Limpar filtros">
+          <i class="fas fa-arrows-rotate"></i>
+        </a>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="col-md-2">
+      <button class="btn btn-primary w-100 btn-sm">
+        Filtrar
+      </button>
+    </div>
+
+  </form>
+
+  <!-- Tabela -->
+  <div class="table-responsive">
+    <table class="table table-bordered table-hover align-middle">
+      <thead class="table-dark">
+        <tr>
+          <th>#</th>
+          <th>Data</th>
+          <th>Cliente</th>
+          <th>Pagamento</th>
+          <th>Qtd Peças</th>
+          <th>Total</th>
+          <th>Status</th>
+          <th width="120">Ações</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {% for v, qtd_itens in vendas %}
+        <tr>
+          <td>{{ v.id }}</td>
+          <td>{{ v.criado_em|br_data_hora }}</td>
+          <td>{{ v.cliente_nome or "-" }}</td>
+          <td>{{ v.tipo_pagamento|upper }}</td>
+          <td class="text-center">
+            <span class="badge bg-secondary">
+              {{ qtd_itens }}
+            </span>
+          </td>
+
+          <td>R$ {{ v.valor_total|br_moeda }}</td>
+          <td>
+            {% if v.status == 'FINALIZADA' %}
+            <span class="badge badge-status bg-success">
+              <i class="fas fa-check-circle"></i> Finalizada
+            </span>
+
+            {% elif v.status == 'AGUARDANDO_PAGAMENTO' %}
+            <span class="badge badge-status bg-warning text-dark">
+              <i class="fas fa-clock"></i> Aguardando pagamento
+            </span>
+
+            {% elif v.status == 'CANCELADA' %}
+            <span class="badge badge-status bg-danger">
+              <i class="fas fa-times-circle"></i> Cancelada
+            </span>
+
+            {% else %}
+            <span class="badge badge-status bg-secondary">
+              {{ v.status }}
+            </span>
+            {% endif %}
+          </td>
+
+
+          <td>
+            <a href="{{ url_for('routes.fitcell_ver_venda_peca', id=v.id) }}" class="btn btn-sm btn-primary">
+              Ver
+            </a>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="7" class="text-center text-muted">
+            Nenhuma venda encontrada.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+{% if pagination.pages > 1 %}
+<nav aria-label="Paginação">
+  <ul class="pagination justify-content-center">
+
+    <!-- Anterior -->
+    <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+      <a class="page-link" href="{{ url_for(request.endpoint, page=pagination.prev_num) }}">
+        Anterior
+      </a>
+    </li>
+
+    <!-- Páginas -->
+    {% for p in range(1, pagination.pages + 1) %}
+    {% if p == pagination.page %}
+    <li class="page-item active">
+      <span class="page-link">{{ p }}</span>
+    </li>
+    {% elif p >= pagination.page - 2 and p <= pagination.page + 2 %} <li class="page-item">
+      <a class="page-link" href="{{ url_for(request.endpoint, page=p) }}">
+        {{ p }}
+      </a>
+      </li>
+      {% endif %}
+      {% endfor %}
+
+      <!-- Próxima -->
+      <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+        <a class="page-link" href="{{ url_for(request.endpoint, page=pagination.next_num) }}">
+          Próxima
+        </a>
+      </li>
+
+  </ul>
+</nav>
+{% endif %}
+
+{% endblock %}

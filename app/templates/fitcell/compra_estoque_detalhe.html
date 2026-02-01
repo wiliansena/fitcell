@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container-fluid mt-3">
+  <!-- Header com ações -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h4>Compra de Estoque #{{ compra.id }}</h4>
+
+    <div class="d-flex gap-2">
+      <a href="{{ url_for('routes.fitcell_listar_compras_estoque') }}" class="btn btn-outline-secondary">
+        Voltar
+      </a>
+
+      {% if compra.status != 'ESTORNADA' %}
+      <form method="POST" action="{{ url_for('routes.fitcell_estornar_compra_estoque', compra_id=compra.id) }}"
+        class="d-inline" onsubmit="return confirm('Deseja estornar esta compra? O estoque será revertido.')">
+
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <button type="submit" class="btn btn-warning">
+          Estornar Compra
+        </button>
+      </form>
+      {% endif %}
+
+    </div>
+  </div>
+
+  <!-- Dados da compra -->
+  <div class="card mb-4">
+    <div class="card-body py-3">
+      <div class="row g-3 align-items-center">
+        <div class="col-md-4">
+          <strong>Fornecedor:</strong><br>
+          {{ compra.fornecedor.nome }}
+        </div>
+
+        <div class="col-md-4">
+          <strong>Data:</strong><br>
+          {{ compra.criado_em|br_data_hora }}
+        </div>
+
+        <div class="col-md-4">
+          <strong>Status:</strong><br>
+          {% if compra.status == 'ESTORNADA' %}
+          <span class="badge bg-secondary">Estornada</span>
+          {% else %}
+          <span class="badge bg-success">Ativa</span>
+          {% endif %}
+        </div>
+      </div>
+
+      {% if compra.observacao %}
+      <hr class="my-3">
+      <div>
+        <strong>Observação:</strong><br>
+        {{ compra.observacao }}
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Itens da compra -->
+  <div class="table-responsive mb-4">
+    <table class="table table-bordered table-hover align-middle">
+      <thead class="table-dark">
+        <tr>
+          <th>Código</th>
+          <th>Nome Peça</th>
+          <th width="120">Quantidade</th>
+          <th width="150">Custo Unitário</th>
+          <th width="150">Subtotal</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {% for i in itens %}
+        <tr>
+          <td>{{ i.peca.codigo_interno }}</td>
+          <td>
+            {{ i.peca.nome }}<br>
+            <small class="text-muted">
+              {{ i.peca.qualidade|replace("_"," ")|title }}
+            </small>
+          </td>
+          <td>{{ i.quantidade }}</td>
+          <td>R$ {{ i.custo_unitario|br_moeda }}</td>
+          <td>R$ {{ (i.quantidade * i.custo_unitario)|br_moeda }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+
+      <tfoot>
+        <tr class="table-secondary">
+          <th colspan="3" class="text-end">TOTAL DA COMPRA</th>
+          <th>R$ {{ total_compra|br_moeda }}</th>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+</div>
+
+{% endblock %}

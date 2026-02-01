@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container-fluid mt-3">
+
+  <h4 class="mb-3"><i class="fa-solid fa-cart-flatbed"></i> Compras de Estoque</h4>
+
+  <div class="d-flex gap-2 mb-3">
+    <a href="{{ url_for('routes.fitcell_nova_compra_estoque') }}" class="btn btn-success">
+      <i class="fas fa-plus"></i> Nova Compra
+    </a>
+    <a href="{{ url_for(
+      'routes.fitcell_relatorio_compras_estoque_pdf',
+      data_ini=data_ini,
+      data_fim=data_fim,
+      fornecedor_id=fornecedor_id
+    ) }}" target="_blank" class="btn btn-outline-danger">
+      <i class="fas fa-file-pdf"></i> Gerar Relatório
+    </a>
+
+  </div>
+  <hr>
+  <!-- Filtros -->
+  <form method="GET" class="row g-2 mb-3">
+
+    <div class="col-md-3">
+      <input type="date" name="data_ini" value="{{ data_ini or '' }}" class="form-control form-control-sm">
+    </div>
+
+    <div class="col-md-3">
+      <input type="date" name="data_fim" value="{{ data_fim or '' }}" class="form-control form-control-sm">
+    </div>
+
+    <div class="col-md-3">
+      <select name="fornecedor_id" class="form-control form-control-sm select2">
+        <option value="">Todos fornecedores</option>
+        {% for f in fornecedores %}
+        <option value="{{ f.id }}" {% if fornecedor_id==f.id|string %}selected{% endif %}>
+          {{ f.nome }}
+        </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="col-md-2">
+      <select name="status" class="form-control form-control-sm">
+        <option value="">Todos status</option>
+        <option value="ATIVA" {% if status=='ATIVA' %}selected{% endif %}>Ativa</option>
+        <option value="ESTORNADA" {% if status=='ESTORNADA' %}selected{% endif %}>Estornada</option>
+      </select>
+    </div>
+    <div class="col-md-1 d-grid">
+      {% if fornecedor_id or status or data_ini or data_fim %}
+      <a href="{{ url_for('routes.fitcell_listar_compras_estoque') }}" class="btn btn-outline-secondary btn-sm mb-3">
+        <i class="fas fa-arrows-rotate"></i> Limpar filtros
+      </a>
+      {% endif %}
+
+    </div>
+    <div class="col-md-1 d-grid">
+      <button class="btn btn-primary btn-sm">Filtrar</button>
+    </div>
+
+
+  </form>
+
+  <!-- Tabela -->
+  <div class="table-responsive">
+    <table class="table table-bordered table-hover align-middle">
+      <thead class="table-dark">
+        <tr>
+          <th>ID</th>
+          <th>Data</th>
+          <th>Fornecedor</th>
+          <th>Status</th>
+          <th width="160">Ações</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {% for c in compras.items %}
+        <tr>
+          <td>#{{ c.id }}</td>
+          <td>{{ c.criado_em|br_data_hora }}</td>
+          <td>{{ c.fornecedor.nome }}</td>
+          <td>
+            {% if c.status == "ATIVA" %}
+            <span class="badge bg-success">ATIVA</span>
+            {% else %}
+            <span class="badge bg-secondary">ESTORNADA</span>
+            {% endif %}
+          </td>
+          <td class="text-center">
+            <a href="{{ url_for('routes.fitcell_ver_compra_estoque', id=c.id) }}" class="btn btn-sm btn-primary">
+              Ver
+            </a>
+
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="5" class="text-center text-muted">
+            Nenhuma compra encontrada.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Paginação -->
+  {% if compras.pages > 1 %}
+  <nav class="mt-3">
+    <ul class="pagination justify-content-center">
+
+      <li class="page-item {% if not compras.has_prev %}disabled{% endif %}">
+        <a class="page-link" href="{{ url_for('routes.fitcell_listar_compras_estoque', page=compras.prev_num) }}">
+          «
+        </a>
+      </li>
+
+      {% for p in compras.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+      {% if p %}
+      <li class="page-item {% if p == compras.page %}active{% endif %}">
+        <a class="page-link" href="{{ url_for('routes.fitcell_listar_compras_estoque', page=p) }}">
+          {{ p }}
+        </a>
+      </li>
+      {% else %}
+      <li class="page-item disabled"><span class="page-link">…</span></li>
+      {% endif %}
+      {% endfor %}
+
+      <li class="page-item {% if not compras.has_next %}disabled{% endif %}">
+        <a class="page-link" href="{{ url_for('routes.fitcell_listar_compras_estoque', page=compras.next_num) }}">
+          »
+        </a>
+      </li>
+
+    </ul>
+  </nav>
+  {% endif %}
+
+</div>
+
+<script>
+  $(document).ready(function () {
+    $('.select2').select2({
+      theme: 'bootstrap-5',
+      width: '100%'
+    });
+  });
+</script>
+
+{% endblock %}

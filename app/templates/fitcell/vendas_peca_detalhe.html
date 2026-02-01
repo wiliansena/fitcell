@@ -1,0 +1,216 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container-fluid mt-3">
+  <!-- Header com ações -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h4>Venda #{{ venda.id }}</h4>
+
+    <div class="d-flex gap-2">
+      <a href="{{ url_for('routes.fitcell_listar_vendas_pecas') }}" class="btn btn-outline-secondary">
+        Voltar
+      </a>
+
+      <a href="{{ url_for('routes.fitcell_venda_peca_pdf', venda_id=venda.id) }}" target="_blank"
+        class="btn btn-primary">
+        <i class="fas fa-print"></i> Imprimir
+      </a>
+
+      {% if venda.status != "CANCELADA" %}
+      <form method="POST" action="{{ url_for('routes.fitcell_cancelar_venda_peca', id=venda.id) }}"
+        onsubmit="return confirm('Deseja realmente cancelar esta venda? O estoque será estornado.')" class="d-inline">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="btn btn-danger">Cancelar Venda</button>
+      </form>
+      {% else %}
+      <span class="badge bg-secondary">Venda Cancelada</span>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Dados da venda -->
+  <div class="card mb-4">
+    <div class="card-body py-3">
+      <div class="row g-3 align-items-center">
+        <div class="col-md-4">
+          <strong>Cliente:</strong><br>
+          {{ venda.cliente_nome or "-" }}
+        </div>
+
+        <div class="col-md-3">
+          <strong>Telefone:</strong><br>
+          {{ venda.cliente_telefone or "-" }}
+        </div>
+
+        <div class="col-md-2">
+          <strong>Tipo Pagto:</strong><br>
+          <span class="badge bg-info text-dark">{{ venda.tipo_pagamento|upper }}</span>
+        </div>
+
+        <div class="col-md-3 text-md-end">
+          <strong>Data:</strong><br>
+          {{ venda.criado_em | br_data_hora }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Itens da venda -->
+  <div class="table-responsive mb-4">
+    <table class="table table-bordered table-hover align-middle">
+      <thead class="table-dark">
+        <tr>
+          <th>Código</th>
+          <th>Peça</th>
+          <th width="120">Qtd</th>
+          <th width="150">Valor Unit.</th>
+          <th width="150">Total</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {% for item in venda.itens %}
+        <tr>
+          <td>{{item.peca.codigo_interno}}</td>
+          <td>
+            {{ item.peca.nome }}<br>
+            <small class="text-muted">{{ item.peca.qualidade|replace("_"," ")|title }}</small>
+          </td>
+          <td>{{ item.quantidade }}</td>
+          <td>R$ {{ item.valor_unitario|br_moeda }}</td>
+          <td>R$ {{ item.valor_total|br_moeda }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Totais -->
+<!-- TOTAIS + PIX -->
+<div class="row justify-content-end align-items-stretch mb-4">
+
+  <!-- PIX -->
+  {% if venda.tipo_pagamento == "pix" and venda.status == "AGUARDANDO_PAGAMENTO" %}
+  <div class="col-md-4 mb-3 mb-md-0" id="bloco-pix">
+    <div class="card h-100">
+      <div class="card-body text-center">
+        <h5 class="mb-3">Pagamento via Pix</h5>
+
+        <img id="pix-qrcode"
+             src="data:image/png;base64,{{ venda.pix_qr_code_base64 }}"
+             class="img-fluid mb-3"
+             style="max-width: 220px">
+
+        <div class="input-group mb-2">
+          <input type="text"
+                 id="pix-copia-cola"
+                 class="form-control"
+                 value="{{ venda.pix_qr_code }}"
+                 readonly>
+
+          <button class="btn btn-outline-primary"
+                  onclick="copiarPix()">
+            Copiar
+          </button>
+        </div>
+
+        <small class="text-muted">
+          Aguardando confirmação do pagamento…
+        </small>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- TOTAIS -->
+  <div class="col-md-4">
+    <div class="card h-100">
+      <div class="card-body py-3 text-end">
+        <p class="mb-2">
+          <strong>Subtotal:</strong><br>
+          R$ {{ venda.subtotal | br_moeda }}
+        </p>
+
+        {% if venda.valor_desconto > 0 %}
+        <p class="text-danger mb-2">
+          <strong>Desconto:</strong><br>
+          - R$ {{ venda.valor_desconto | br_moeda }}
+        </p>
+        {% endif %}
+
+        <hr>
+
+        <h4 class="text-primary mb-0">
+          <strong>Total:</strong><br>
+          R$ {{ venda.total_com_desconto | br_moeda }}
+        </h4>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% if venda.status == "ORCAMENTO" %}
+  <a href="{{ url_for('routes.fitcell_enviar_orcamento_whatsapp', id=venda.id) }}"
+     class="btn btn-success">
+     <i class="fab fa-whatsapp"></i> Enviar orçamento
+  </a>
+
+  <a href="{{ url_for('routes.fitcell_ver_venda_peca', id=venda.id) }}"
+     class="btn btn-primary">
+     Converter em venda
+  </a>
+{% endif %}
+
+
+
+</div>
+<script>
+let pollingAtivo = true;
+
+function copiarPix() {
+  const input = document.getElementById("pix-copia-cola");
+  input.select();
+  input.setSelectionRange(0, 99999);
+  document.execCommand("copy");
+  alert("Pix copiado!");
+}
+
+function atualizarStatusVenda() {
+  if (!pollingAtivo) return;
+
+  fetch("{{ url_for('routes.fitcell_status_venda_peca', id=venda.id) }}")
+    .then(r => r.json())
+    .then(data => {
+
+      if (data.status === "FINALIZADA") {
+        pollingAtivo = false;
+
+        const bloco = document.getElementById("bloco-pix");
+        if (bloco) {
+          bloco.innerHTML = `
+            <div class="alert alert-success">
+              <strong>Pagamento confirmado!</strong><br>
+              Venda finalizada com sucesso.
+            </div>
+          `;
+        }
+
+        return;
+      }
+
+      // Atualiza QR se necessário
+      if (data.pix_qr_code_base64) {
+        const img = document.getElementById("pix-qrcode");
+        if (img) {
+          img.src = "data:image/png;base64," + data.pix_qr_code_base64;
+        }
+      }
+    })
+    .catch(err => console.error(err));
+}
+
+// polling a cada 5 segundos
+setInterval(atualizarStatusVenda, 5000);
+</script>
+
+{% endblock %}

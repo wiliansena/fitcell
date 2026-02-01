@@ -1,0 +1,62 @@
+{% extends "base_relatorio_pdf.html" %}
+
+{% block content %}
+
+<h2>Relatório de Vendas de Peças</h2>
+
+<p style="text-align:center;margin-bottom:10px;">
+    Período:
+    <strong>{{ data_ini|br_data }}</strong> até
+    <strong>{{ data_fim|br_data }}</strong>
+</p>
+
+<table>
+    <thead>
+        <tr>
+            <th>Data</th>
+            <th>Cliente</th>
+            <th>Pagamento</th>
+            <th>Total Bruto</th>
+            <th>Desconto</th>
+            <th>Total</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        {% for v in vendas %}
+        <tr>
+            <td>{{ v.criado_em|br_data_hora }}</td>
+            <td>{{ v.cliente_nome or "-" }}</td>
+            <td>{{ v.tipo_pagamento|upper }}</td>
+            <td>{{ v.subtotal|br_moeda }}</td>
+            <td>{{ v.valor_desconto|br_moeda }}</td>
+            <td>{{ v.total_com_desconto|br_moeda }}</td>
+            <td>{{ v.status }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<div style="page-break-before: always;"></div>
+
+<h3>Totais do Período</h3>
+
+<table>
+    <tbody>
+        <tr>
+            <td><strong>Total Bruto</strong></td>
+            <td>{{ total_bruto|br_moeda }}</td>
+        </tr>
+        <tr>
+            <td><strong>Total Descontos</strong></td>
+            <td>{{ total_descontos|br_moeda }}</td>
+        </tr>
+        <tr>
+            <td><strong>Total Líquido</strong></td>
+            <td><strong>{{ total_liquido|br_moeda }}</strong></td>
+        </tr>
+    </tbody>
+</table>
+
+{% endblock %}

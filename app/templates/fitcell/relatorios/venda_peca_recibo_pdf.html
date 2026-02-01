@@ -1,0 +1,86 @@
+{% extends "base_relatorio_pdf.html" %}
+
+{% block content %}
+
+<h2 style="text-align:center;">Recibo de Venda</h2>
+
+<p style="text-align:center;margin-bottom:12px;">
+    <strong>Venda #{{ venda.id }}</strong><br>
+    Data: {{ venda.criado_em | br_data_hora }}
+</p>
+
+<hr>
+
+<table style="margin-bottom:12px;">
+    <tr>
+        <td><strong>Cliente:</strong></td>
+        <td>{{ venda.cliente_nome or "—" }}</td>
+    </tr>
+    <tr>
+        <td><strong>Telefone:</strong></td>
+        <td>{{ venda.cliente_telefone or "—" }}</td>
+    </tr>
+    <tr>
+        <td><strong>Pagamento:</strong></td>
+        <td>{{ venda.tipo_pagamento | upper }}</td>
+    </tr>
+</table>
+
+<h4>Itens da Venda</h4>
+
+<table>
+    <thead>
+        <tr>
+            <th>Peça</th>
+            <th>Qtd</th>
+            <th>Valor Unit.</th>
+            <th>Total</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        {% for item in venda.itens %}
+        <tr>
+            <td>
+                {{ item.peca.tipo.nome }} - {{ item.peca.qualidade|replace("_"," ")|title }}
+            </td>
+            <td style="text-align:center;">{{ item.quantidade }}</td>
+            <td style="text-align:right;">
+                {{ item.valor_unitario | br_moeda }}
+            </td>
+            <td style="text-align:right;">
+                {{ (item.valor_unitario * item.quantidade) | br_moeda }}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<br>
+
+<table>
+    <tbody>
+        <tr>
+            <td><strong>Subtotal</strong></td>
+            <td style="text-align:right;">
+                {{ venda.subtotal | br_moeda }}
+            </td>
+        </tr>
+
+        <tr>
+            <td><strong>Desconto</strong></td>
+            <td style="text-align:right;">
+                {{ venda.valor_desconto | br_moeda }}
+            </td>
+        </tr>
+
+        <tr>
+            <td><strong>Total</strong></td>
+            <td style="text-align:right;">
+                <strong>{{ venda.total_com_desconto | br_moeda }}</strong>
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+{% endblock %}

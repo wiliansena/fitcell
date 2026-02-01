@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container-fluid mt-3">
+  <h4>
+    {{ "Editar Peça" if peca else "Nova Peça" }}
+  </h4>
+
+  <form method="POST" enctype="multipart/form-data">
+    {{ form.hidden_tag() }}
+
+    <div class="row">
+
+      <div class="col-md-4 mb-3">
+        {{ form.nome.label }}
+        {{ form.nome(class="form-control") }}
+      </div>
+
+      <div class="col-md-4 mb-3">
+        {{ form.tipo_peca_id.label }}
+        {{ form.tipo_peca_id(class="form-control") }}
+      </div>
+
+      <div class="col-md-4 mb-3">
+        {{ form.qualidade.label }}
+        {{ form.qualidade(class="form-control") }}
+      </div>
+
+      <div class="col-md-4 mb-3">
+        {{ form.marca_peca.label }}
+        {{ form.marca_peca(class="form-control") }}
+      </div>
+
+      <div class="col-md-3 mb-3">
+        {{ form.preco_venda.label }}
+        {{ form.preco_venda(class="form-control") }}
+      </div>
+
+      <div class="col-md-3 mb-3">
+        {{ form.preco_minimo.label }}
+        {{ form.preco_minimo(class="form-control") }}
+      </div>
+
+      <div class="col-md-3 mb-3">
+        {{ form.codigo_interno.label }}
+        {{ form.codigo_interno(class="form-control") }}
+      </div>
+
+      <div class="col-md-3 mb-3 d-flex align-items-end">
+        <div class="form-check">
+          {{ form.ativo(class="form-check-input") }}
+          {{ form.ativo.label(class="form-check-label") }}
+        </div>
+      </div>
+
+      <div class="col-md-12 mb-3">
+        {{ form.observacoes.label }}
+        {{ form.observacoes(class="form-control", rows=3) }}
+      </div>
+      <div class="col-md-4 mb-3">
+        {{ form.imagem.label }}
+        {{ form.imagem(class="form-control-file") }}
+      </div>
+
+    </div>
+
+    {% if peca %}
+    <!-- 🔥 COMPATIBILIDADE – SOMENTE NO EDITAR -->
+    <hr>
+    <h5>Compatibilidade com Modelos</h5>
+
+    <div class="mb-3">
+      {{ form.modelos_compativeis.label }}
+      {{ form.modelos_compativeis(
+      class="form-control select2",
+      multiple=True
+      ) }}
+      <small class="text-dark">
+        Selecione os modelos de celular compatíveis com esta peça.
+      </small>
+    </div>
+    {% endif %}
+
+    <div class="mt-4">
+      <button class="btn btn-success">
+        Salvar
+      </button>
+      <a href="{{ url_for('routes.fitcell_listar_pecas') }}" class="btn btn-secondary">
+        Cancelar
+      </a>
+    </div>
+
+  </form>
+</div>
+
+{% endblock %}

@@ -1,0 +1,196 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container-fluid mt-3">
+
+  <h4 class="mb-3"><i class="fa-solid fa-microchip"></i> Peças</h4>
+  <br>
+
+  <!-- Ações -->
+  <div class="d-flex gap-2 mb-3 flex-wrap">
+    <a href="{{ url_for('routes.fitcell_nova_peca') }}" class="btn btn-success">
+      <i class="fas fa-plus"></i> Nova Peça
+    </a>
+  </div>
+
+  <hr>
+
+  <!-- Busca -->
+  <form method="GET" class="row g-2 mb-3">
+
+    <div class="col-md-4">
+      <div class="input-group input-group-sm">
+        <span class="input-group-text">
+          <i class="fas fa-search"></i>
+        </span>
+
+        <input type="text"
+               name="busca"
+               value="{{ busca }}"
+               class="form-control"
+               placeholder="Pesquisar tipo, marca, código ou qualidade">
+
+        {% if busca %}
+        <a href="{{ url_for('routes.fitcell_listar_pecas') }}"
+           class="btn btn-outline-secondary"
+           title="Limpar pesquisa">
+          <i class="fas fa-arrows-rotate"></i>
+        </a>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="col-md-2">
+      <button class="btn btn-primary w-100">
+        Filtrar
+      </button>
+    </div>
+
+  </form>
+
+  <!-- Tabela -->
+<div class="table-responsive">
+  <table class="table table-sm table-hover align-middle border">
+    <thead class="table-light text-uppercase small">
+      <tr>
+        <th>Código</th>
+        <th>Peça</th>
+        <th class="text-center">Imagem</th>
+        <th>Tipo</th>
+        <th>Qualidade</th>
+        <th>Marca</th>
+        <th class="text-center">Estoque</th>
+        <th class="text-end">Preço</th>
+        <th class="text-center">Status</th>
+        <th class="text-center" width="80">Ações</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      {% for p, estoque in pecas.items %}
+      <tr>
+        <td class="fw-semibold text-muted">
+          {{ p.codigo_interno or "-" }}
+        </td>
+
+        <td>
+          <div class="fw-semibold">{{ p.nome }}</div>
+        </td>
+
+        <td class="text-center">
+          {% if p.imagem %}
+            <img src="{{ url_for('static', filename=p.imagem) }}"
+                 class="img-thumbnail"
+                 style="height:55px; width:55px; object-fit:cover;">
+          {% else %}
+            <span class="text-muted small">—</span>
+          {% endif %}
+        </td>
+
+        <td>{{ p.tipo.nome }}</td>
+
+        <td>
+          <span class="badge bg-light text-dark">
+            {{ p.qualidade|replace("_", " ")|title }}
+          </span>
+        </td>
+
+        <td>{{ p.marca_peca or "-" }}</td>
+
+        <!-- ESTOQUE COM COR -->
+        <td class="text-center">
+          {% set qtd = estoque or 0 %}
+          {% if qtd == 0 %}
+            <span class="badge bg-danger">0</span>
+          {% elif qtd <= 5 %}
+            <span class="badge bg-warning text-dark">{{ qtd }}</span>
+          {% else %}
+            <span class="badge bg-success">{{ qtd }}</span>
+          {% endif %}
+        </td>
+
+        <!-- PREÇO -->
+        <td class="text-end fw-semibold">
+          R$ {{ "%.2f"|format(p.preco_venda or 0) }}
+        </td>
+
+        <!-- STATUS -->
+        <td class="text-center">
+          {% if p.ativo %}
+            <span class="badge bg-success-subtle text-success">
+              Ativa
+            </span>
+          {% else %}
+            <span class="badge bg-secondary-subtle text-secondary">
+              Inativa
+            </span>
+          {% endif %}
+        </td>
+
+        <!-- AÇÕES -->
+        <td class="text-center">
+          <a href="{{ url_for('routes.fitcell_editar_peca', id=p.id) }}"
+             class="btn btn-sm btn-outline-warning"
+             title="Editar peça">
+            <i class="fas fa-pen"></i>
+          </a>
+        </td>
+      </tr>
+      {% else %}
+      <tr>
+        <td colspan="10" class="text-center text-muted py-4">
+          Nenhuma peça encontrada.
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+</div>
+
+<!-- Paginação -->
+{% if pecas.pages > 1 %}
+<nav class="mt-3">
+  <ul class="pagination justify-content-center">
+
+    <li class="page-item {% if not pecas.has_prev %}disabled{% endif %}">
+      <a class="page-link"
+         href="{{ url_for('routes.fitcell_listar_pecas',
+                          page=pecas.prev_num,
+                          busca=busca) }}">
+        «
+      </a>
+    </li>
+
+    {% for p in pecas.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+      {% if p %}
+        <li class="page-item {% if p == pecas.page %}active{% endif %}">
+          <a class="page-link"
+             href="{{ url_for('routes.fitcell_listar_pecas',
+                              page=p,
+                              busca=busca) }}">
+            {{ p }}
+          </a>
+        </li>
+      {% else %}
+        <li class="page-item disabled">
+          <span class="page-link">…</span>
+        </li>
+      {% endif %}
+    {% endfor %}
+
+    <li class="page-item {% if not pecas.has_next %}disabled{% endif %}">
+      <a class="page-link"
+         href="{{ url_for('routes.fitcell_listar_pecas',
+                          page=pecas.next_num,
+                          busca=busca) }}">
+        »
+      </a>
+    </li>
+
+  </ul>
+</nav>
+{% endif %}
+
+{% endblock %}

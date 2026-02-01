@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="home-hero">
+    <div class="home-card">
+        <img
+            src="{{ url_for('static', filename='images/logo.png') }}"
+            alt="Fitcell"
+            class="home-logo"
+        >
+
+        <h1 class="home-title">Seja Bem-vindo!
+        </h1>
+
+        <p class="home-subtitle">
+            Gestão inteligente de peças, vendas rápidas e estoque real
+        </p>
+
+        <div class="home-divider"></div>
+
+        <p class="home-footer">
+            Desenvolvido por <strong> © Rootec Sys - 2025</strong>
+        </p>
+    </div>
+
+{% if current_user.is_admin_empresa %}
+<div class="container-fluid mt-4">
+  <div class="row g-3">
+
+    <div class="col-md-3 col-sm-6">
+      <div class="card-kpi kpi-primary">
+        <div class="kpi-icon">
+          <i class="fa-solid fa-cart-shopping"></i>
+        </div>
+        <div class="kpi-content">
+          <small>Vendido hoje</small>
+          <h4 id="home-qtd-vendida">—</h4>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-3 col-sm-6">
+      <div class="card-kpi kpi-success">
+        <div class="kpi-icon">
+          <i class="fa-solid fa-dollar-sign"></i>
+        </div>
+        <div class="kpi-content">
+          <small>Valor vendido hoje</small>
+          <h4 id="home-valor-vendido">—</h4>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-3 col-sm-6">
+      <div class="card-kpi kpi-warning">
+        <div class="kpi-icon">
+          <i class="fa-solid fa-boxes-stacked"></i>
+        </div>
+        <div class="kpi-content">
+          <small>Estoque atual</small>
+          <h4 id="home-qtd-estoque">—</h4>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-3 col-sm-6">
+      <div class="card-kpi kpi-dark">
+        <div class="kpi-icon">
+          <i class="fa-solid fa-warehouse"></i>
+        </div>
+        <div class="kpi-content">
+          <small>Valor em estoque</small>
+          <h4 id="home-valor-estoque">—</h4>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endif %}
+
+</div>
+<script>
+fetch("/fitcell/bi/home-kpis")
+  .then(r => r.json())
+  .then(d => {
+    if (!d.qtd_vendida && d.qtd_vendida !== 0) return;
+
+    document.getElementById("home-qtd-vendida").innerText = d.qtd_vendida;
+    document.getElementById("home-valor-vendido").innerText = d.valor_vendido;
+    document.getElementById("home-qtd-estoque").innerText = d.qtd_estoque;
+    document.getElementById("home-valor-estoque").innerText = d.valor_estoque;
+  });
+</script>
+
+{% endblock %}

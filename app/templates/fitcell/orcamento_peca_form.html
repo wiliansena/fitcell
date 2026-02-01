@@ -1,0 +1,231 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container-fluid mt-3">
+
+  <h4 class="mb-3">ORÇAMENTO</h4>
+
+  <form method="POST">
+    {{ form.csrf_token }}
+
+    <!-- DADOS DO ORÇAMENTO -->
+    <div class="row g-3 mb-3">
+
+      <div class="col-md-4">
+        {{ form.modelo_celular_id.label(class="form-label") }}
+        <select name="{{ form.modelo_celular_id.name }}" id="{{ form.modelo_celular_id.id }}"
+          class="form-control select2" onchange="filtrarPecas(this.value)">
+
+          <option value="" selected disabled>Escolha o Modelo</option>
+
+          {% for value, label in form.modelo_celular_id.choices %}
+          <option value="{{ value }}" {% if form.modelo_celular_id.data==value %} selected {% endif %}>
+            {{ label }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+
+
+      <div class="col-md-4">
+        {{ form.cliente_nome.label(class="form-label") }}
+        {{ form.cliente_nome(class="form-control") }}
+      </div>
+
+      <div class="col-md-4">
+        {{ form.cliente_telefone.label(class="form-label") }}
+        {{ form.cliente_telefone(class="form-control") }}
+      </div>
+
+      <div class="col-md-4">
+        {{ form.tipo_pagamento.label(class="form-label") }}
+        {{ form.tipo_pagamento(class="form-control") }}
+      </div>
+
+      <div class="col-md-4">
+        {{ form.desconto.label(class="form-label") }}
+        {{ form.desconto(class="form-control", step="0.01") }}
+      </div>
+
+    </div>
+
+    <hr>
+
+    <!-- ITENS DA VENDA -->
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <h5 class="mb-0">Itens da Venda</h5>
+
+      <button type="button" class="btn btn-sm btn-success" onclick="adicionarLinha()">
+        <i class="fas fa-plus"></i> Adicionar Peça
+      </button>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table table-bordered table-hover align-middle" id="tabela-itens">
+        <thead class="table-dark">
+          <tr>
+            <th width="40%">Peça</th>
+            <th width="10%">Qtd</th>
+            <th width="15%">Valor Unit.</th>
+            <th width="15%">Total</th>
+            <th width="10%">Ação</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <!-- linhas via JS -->
+        </tbody>
+      </table>
+    </div>
+
+    <hr>
+
+    <!-- TOTAL -->
+    <div class="row justify-content-end mb-3">
+      <div class="col-md-3">
+        <label class="form-label">Total da Venda</label>
+        <input type="text" id="total_venda" class="form-control" readonly>
+      </div>
+    </div>
+
+    <div class="d-flex gap-2">
+      <!-- FINALIZA NORMAL -->
+      <button type="submit" class="btn btn-success">
+        <i class="fas fa-check"></i> Criar Orçamento
+      </button>
+
+      <a href="{{ url_for('routes.fitcell_listar_pecas') }}" class="btn btn-outline-secondary">
+        Cancelar
+      </a>
+    </div>
+
+
+  </form>
+
+</div>
+
+<script>
+  let contador = 0;
+
+  function filtrarPecas(modeloId) {
+    if (!modeloId) return;
+    window.location.href = `?modelo_id=${modeloId}`;
+  }
+
+  function adicionarLinha() {
+    contador++;
+
+    const tbody = document.querySelector("#tabela-itens tbody");
+    const tr = document.createElement("tr");
+    tr.dataset.idx = contador;
+
+    tr.innerHTML = `
+      <td>
+        <select name="peca_id[]" class="form-control select2 peca-select" required>
+          <option value="">Selecione a peça</option>
+          {% for p in pecas %}
+            <option value="{{ p.id }}" data-preco="{{ p.preco_venda }}">
+              COD: {{ p.codigo_interno }} - NOME: {{ p.nome }} - {{ p.qualidade }}
+            </option>
+          {% endfor %}
+        </select>
+      </td>
+
+      <td>
+        <input type="number"
+               name="quantidade[]"
+               class="form-control"
+               min="1"
+               value="1"
+               onchange="calcularLinha(this)"
+               required>
+      </td>
+
+      <td>
+        <input type="number"
+               name="valor_unitario[]"
+               class="form-control"
+               step="0.01"
+               min="0"
+               onchange="calcularLinha(this)"
+               required>
+      </td>
+
+      <td>
+        <input type="text"
+               class="form-control total-linha"
+               readonly>
+      </td>
+
+      <td class="text-center">
+        <button type="button"
+                class="btn btn-sm btn-danger"
+                onclick="removerLinha(${contador})">
+          <i class="fas fa-trash"></i>
+        </button>
+      </td>
+    `;
+
+    tbody.appendChild(tr);
+    inicializarSelect2();
+  }
+
+  function removerLinha(idx) {
+    const tr = document.querySelector(`tr[data-idx="${idx}"]`);
+    if (tr) tr.remove();
+    calcularTotal();
+  }
+
+  function calcularLinha(el) {
+    const tr = el.closest("tr");
+    const qtd = tr.querySelector('input[name="quantidade[]"]').value || 0;
+    const valor = tr.querySelector('input[name="valor_unitario[]"]').value || 0;
+    const total = qtd * valor;
+
+    tr.querySelector(".total-linha").value = total.toFixed(2);
+    calcularTotal();
+  }
+
+  function calcularTotal() {
+    let total = 0;
+    document.querySelectorAll(".total-linha").forEach(el => {
+      total += parseFloat(el.value || 0);
+    });
+
+    const desconto = parseFloat(
+      document.querySelector('input[name="desconto"]').value || 0
+    );
+
+    total -= desconto;
+    document.getElementById("total_venda").value = total.toFixed(2);
+  }
+
+  function inicializarSelect2() {
+    $('.select2').select2({
+      theme: 'bootstrap-5',
+      width: '100%'
+    }).on('select2:select', function (e) {
+      const preco = e.params.data.element.dataset.preco;
+      const tr = this.closest("tr");
+      const inputValor = tr.querySelector('input[name="valor_unitario[]"]');
+      if (preco && inputValor) {
+        inputValor.value = preco;
+        calcularLinha(inputValor);
+      }
+    });
+  }
+
+  $(document).ready(function () {
+    inicializarSelect2();
+  });
+</script>
+<script>
+  function receberViaPix() {
+    const form = document.querySelector("form");
+    form.action = "{{ url_for('routes.fitcell_receber_via_pix') }}";
+    form.method = "POST";
+    form.submit();
+  }
+</script>
+
+{% endblock %}

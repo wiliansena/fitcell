@@ -1,0 +1,187 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container-fluid mt-3">
+
+  <h4 class="mb-3"><i class="fas fa-receipt"></i> Orçamentos Pendentes</h4>
+
+  <!-- Ações -->
+  <div class="d-flex gap-2 mb-3 flex-wrap">
+    <a href="{{ url_for('routes.fitcell_novo_orcamento') }}" class="btn btn-success">
+      <i class="fas fa-plus"></i> Novo Orçamento
+    </a>
+  </div>
+
+  <!-- Filtros -->
+  <form method="GET" class="row g-2 mb-3">
+
+    <div class="col-md-3">
+      <input type="date"
+             name="data_ini"
+             value="{{ data_ini or '' }}"
+             class="form-control form-control-sm">
+    </div>
+
+    <div class="col-md-3">
+      <input type="date"
+             name="data_fim"
+             value="{{ data_fim or '' }}"
+             class="form-control form-control-sm">
+    </div>
+
+    <div class="col-md-4">
+      <div class="input-group input-group-sm">
+        <span class="input-group-text">
+          <i class="fas fa-search"></i>
+        </span>
+
+        <input type="text"
+               name="busca"
+               value="{{ busca }}"
+               class="form-control"
+               placeholder="Buscar cliente ou telefone">
+
+        {% if busca or data_ini or data_fim %}
+        <a href="{{ url_for('routes.fitcell_listar_orcamentos') }}"
+           class="btn btn-outline-secondary"
+           title="Limpar filtros">
+          <i class="fas fa-arrows-rotate"></i>
+        </a>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="col-md-2">
+      <button class="btn btn-primary w-100 btn-sm">
+        Filtrar
+      </button>
+    </div>
+
+  </form>
+
+  <!-- Tabela -->
+  <div class="table-responsive">
+    <table class="table table-bordered table-hover align-middle">
+      <thead class="table-dark">
+        <tr>
+          <th>#</th>
+          <th>Data</th>
+          <th>Cliente</th>
+          <th>Origem</th>
+          <th class="text-center">Qtd Peças</th>
+          <th>Total</th>
+          <th>Status</th>
+          <th width="160">Ações</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {% for v, qtd_itens in orcamentos %}
+        <tr>
+          <td>{{ v.id }}</td>
+          <td>{{ v.criado_em | br_data_hora }}</td>
+          <td>
+            {{ v.cliente_nome or "-" }}<br>
+            <small class="text-muted">{{ v.cliente_telefone or "" }}</small>
+          </td>
+
+          <td>
+            <span class="badge bg-info text-dark">
+              {{ v.origem|upper }}
+            </span>
+          </td>
+
+          <td class="text-center">
+            <span class="badge bg-secondary">
+              {{ qtd_itens }}
+            </span>
+          </td>
+
+          <td>
+            R$ {{ v.valor_total | br_moeda }}
+          </td>
+
+          <td>
+            <span class="badge badge-status bg-warning text-dark">
+              <i class="fas fa-file-invoice"></i> Orçamento
+            </span>
+          </td>
+
+          <td class="text-nowrap">
+            <a href="{{ url_for('routes.fitcell_ver_orcamento', id=v.id) }}"
+               class="btn btn-sm btn-primary"
+               title="Ver orçamento">
+              <i class="fas fa-eye"></i>
+            </a>
+
+            <a href="{{ url_for('routes.fitcell_enviar_orcamento_whatsapp', id=v.id) }}"
+               class="btn btn-sm btn-success"
+               title="Enviar via WhatsApp">
+              <i class="fab fa-whatsapp"></i>
+            </a>
+
+            <form method="POST"
+                  action="{{ url_for('routes.fitcell_converter_orcamento', id=v.id) }}"
+                  class="d-inline"
+                  onsubmit="return confirm('Converter este orçamento em venda?');">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button class="btn btn-sm btn-warning"
+                      title="Converter em venda">
+                <i class="fas fa-check"></i>
+              </button>
+            </form>
+          </td>
+        </tr>
+
+        {% else %}
+        <tr>
+          <td colspan="8" class="text-center text-muted">
+            Nenhum orçamento pendente encontrado.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<!-- Paginação -->
+{% if pagination.pages > 1 %}
+<nav aria-label="Paginação">
+  <ul class="pagination justify-content-center">
+
+    <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+      <a class="page-link"
+         href="{{ url_for(request.endpoint, page=pagination.prev_num) }}">
+        Anterior
+      </a>
+    </li>
+
+    {% for p in range(1, pagination.pages + 1) %}
+      {% if p == pagination.page %}
+        <li class="page-item active">
+          <span class="page-link">{{ p }}</span>
+        </li>
+      {% elif p >= pagination.page - 2 and p <= pagination.page + 2 %}
+        <li class="page-item">
+          <a class="page-link"
+             href="{{ url_for(request.endpoint, page=p) }}">
+            {{ p }}
+          </a>
+        </li>
+      {% endif %}
+    {% endfor %}
+
+    <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+      <a class="page-link"
+         href="{{ url_for(request.endpoint, page=pagination.next_num) }}">
+        Próxima
+      </a>
+    </li>
+
+  </ul>
+</nav>
+{% endif %}
+
+{% endblock %}

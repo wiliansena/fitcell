@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container-fluid mt-3">
+
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4>
+            Orçamento #{{ venda.id }}
+            <span class="badge bg-warning text-dark ms-2">
+                ORÇAMENTO
+            </span>
+        </h4>
+
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('routes.fitcell_listar_orcamentos') }}" class="btn btn-outline-secondary">
+                Voltar
+            </a>
+            <a href="{{ url_for('routes.fitcell_orcamento_pdf', orcamento_id=venda.id) }}" class="btn btn-outline-primary">
+                <i class="fas fa-print"></i> Imprimir
+            </a>
+
+
+            <a href="{{ url_for('routes.fitcell_enviar_orcamento_whatsapp', id=venda.id) }}" class="btn btn-success">
+                <i class="fab fa-whatsapp"></i> Enviar WhatsApp
+            </a>
+
+            {% if venda.status != "CANCELADA" %}
+            <form method="POST" action="{{ url_for('routes.fitcell_converter_orcamento', id=venda.id) }}"
+                class="d-inline" onsubmit="return confirm('Converter este orçamento em venda?');">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button class="btn btn-primary">
+                    <i class="fas fa-check"></i> Converter em Venda
+                </button>
+            </form>
+
+            <form method="POST" action="{{ url_for('routes.fitcell_cancelar_venda_peca', id=venda.id) }}"
+                class="d-inline" onsubmit="return confirm('Deseja cancelar este orçamento?');">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button class="btn btn-danger">
+                    Cancelar
+                </button>
+            </form>
+            {% else %}
+            <span class="badge bg-secondary">Orçamento Cancelado</span>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Dados do orçamento -->
+    <div class="card mb-4">
+        <div class="card-body py-3">
+            <div class="row g-3 align-items-center">
+                <div class="col-md-4">
+                    <strong>Cliente:</strong><br>
+                    {{ venda.cliente_nome or "-" }}
+                </div>
+
+                <div class="col-md-4">
+                    <strong>Telefone:</strong><br>
+                    {{ venda.cliente_telefone or "-" }}
+                </div>
+
+                <div class="col-md-4 text-md-end">
+                    <strong>Data:</strong><br>
+                    {{ venda.criado_em | br_data_hora }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Itens do orçamento -->
+    <div class="table-responsive mb-4">
+        <table class="table table-bordered table-hover align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th>Código</th>
+                    <th>Peça</th>
+                    <th width="120">Qtd</th>
+                    <th width="150">Valor Unit.</th>
+                    <th width="150">Total</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for item in venda.itens %}
+                <tr>
+                    <td>{{ item.peca.codigo_interno }}</td>
+                    <td>
+                        {{ item.peca.nome }}<br>
+                        <small class="text-muted">
+                            {{ item.peca.qualidade|replace("_"," ")|title }}
+                        </small>
+                    </td>
+                    <td>{{ item.quantidade }}</td>
+                    <td>R$ {{ item.valor_unitario | br_moeda }}</td>
+                    <td>R$ {{ item.valor_total | br_moeda }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Totais -->
+    <div class="row justify-content-end mb-4">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body py-3 text-end">
+                    <p class="mb-2">
+                        <strong>Subtotal:</strong><br>
+                        R$ {{ venda.subtotal | br_moeda }}
+                    </p>
+
+                    {% if venda.valor_desconto > 0 %}
+                    <p class="text-danger mb-2">
+                        <strong>Desconto:</strong><br>
+                        - R$ {{ venda.valor_desconto | br_moeda }}
+                    </p>
+                    {% endif %}
+
+                    <hr>
+
+                    <h4 class="text-primary mb-0">
+                        <strong>Total do Orçamento:</strong><br>
+                        R$ {{ venda.total_com_desconto | br_moeda }}
+                    </h4>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,46 @@
+{% extends "base_relatorio_pdf.html" %}
+
+{% block content %}
+
+<h2>Relatório Compra × Venda (Lucro Bruto)</h2>
+
+{% if data_ini and data_fim %}
+<p style="text-align:center;margin-bottom:10px;">
+  Período:
+  <strong>{{ data_ini|br_data }}</strong> até
+  <strong>{{ data_fim|br_data }}</strong>
+</p>
+{% endif %}
+
+<table>
+  <thead>
+    <tr>
+      <th>Descrição</th>
+      <th>Valor (R$)</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <tr>
+      <td>Total de Vendas</td>
+      <td>{{ total_vendas|br_moeda }}</td>
+    </tr>
+
+    <tr>
+      <td>Total de Compras</td>
+      <td>{{ total_compras|br_moeda }}</td>
+    </tr>
+
+    <tr>
+      <td><strong>Lucro Bruto (No perído)</strong></td>
+      <td><strong>{{ lucro_bruto|br_moeda }}</strong></td>
+    </tr>
+
+    <tr>
+      <td>Margem Bruta (%)</td>
+      <td>{{ margem|round(2) }}%</td>
+    </tr>
+  </tbody>
+</table>
+
+{% endblock %}

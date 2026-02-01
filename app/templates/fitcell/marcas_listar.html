@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container-fluid mt-3">
+
+  <h4 class="mb-3"><i class="fa-solid fa-tags"></i> Marcas de Celulares</h4>
+  <br>
+
+  <!-- Ações -->
+  <div class="d-flex gap-2 mb-3 flex-wrap">
+    <a href="{{ url_for('routes.fitcell_nova_marca') }}" class="btn btn-success">
+      <i class="fas fa-plus"></i> Nova marca
+    </a>
+  </div>
+
+  <hr>
+
+  <!-- Busca -->
+  <form method="GET" class="row g-2 mb-3">
+
+    <div class="col-md-4">
+      <div class="input-group input-group-sm">
+        <span class="input-group-text">
+          <i class="fas fa-search"></i>
+        </span>
+
+        <input type="text"
+               name="busca"
+               value="{{ busca }}"
+               class="form-control"
+               placeholder="Pesquisar marca">
+
+        {% if busca %}
+        <a href="{{ url_for('routes.fitcell_listar_marcas') }}"
+           class="btn btn-outline-secondary"
+           title="Limpar pesquisa">
+          <i class="fas fa-arrows-rotate"></i>
+        </a>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="col-md-2">
+      <button class="btn btn-primary w-100">
+        Filtrar
+      </button>
+    </div>
+
+  </form>
+
+  <!-- Tabela -->
+  <div class="table-responsive">
+    <table class="table table-bordered table-hover align-middle">
+      <thead class="table-dark">
+        <tr>
+          <th>Marca</th>
+          <th>Status</th>
+          <th width="160">Ações</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {% for m in marcas %}
+        <tr>
+          <td>{{ m.nome }}</td>
+
+          <td>
+            {% if m.ativo %}
+              <span class="badge bg-success">Ativa</span>
+            {% else %}
+              <span class="badge bg-secondary">Inativa</span>
+            {% endif %}
+          </td>
+
+          <td>
+            <div class="acoes-cell d-flex gap-1">
+
+              <a href="{{ url_for('routes.fitcell_editar_marca', id=m.id) }}"
+                 class="btn btn-sm btn-warning">
+                Editar
+              </a>
+
+              <form method="POST"
+                    action="{{ url_for('routes.fitcell_excluir_marca', id=m.id) }}"
+                    onsubmit="return confirm('Deseja realmente excluir esta marca?');">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button class="btn btn-sm btn-danger">
+                  Excluir
+                </button>
+              </form>
+
+            </div>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="3" class="text-center text-muted">
+            Nenhuma marca encontrada.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<!-- Paginação -->
+{% if pagination.pages > 1 %}
+<nav class="mt-3">
+  <ul class="pagination justify-content-center">
+
+    <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+      <a class="page-link"
+         href="{{ url_for('routes.fitcell_listar_marcas',
+                          page=pagination.prev_num,
+                          busca=busca) }}">
+        «
+      </a>
+    </li>
+
+    {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+      {% if p %}
+        <li class="page-item {% if p == pagination.page %}active{% endif %}">
+          <a class="page-link"
+             href="{{ url_for('routes.fitcell_listar_marcas',
+                              page=p,
+                              busca=busca) }}">
+            {{ p }}
+          </a>
+        </li>
+      {% else %}
+        <li class="page-item disabled">
+          <span class="page-link">…</span>
+        </li>
+      {% endif %}
+    {% endfor %}
+
+    <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+      <a class="page-link"
+         href="{{ url_for('routes.fitcell_listar_marcas',
+                          page=pagination.next_num,
+                          busca=busca) }}">
+        »
+      </a>
+    </li>
+
+  </ul>
+</nav>
+{% endif %}
+
+{% endblock %}

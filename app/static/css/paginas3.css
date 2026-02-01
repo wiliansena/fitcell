@@ -1,0 +1,515 @@
+/* ======================================================
+   🎨 DESIGN SYSTEM – CLEAN SAAS
+====================================================== */
+:root {
+    --bg-page: #f1f5f9;
+    --bg-card: #ffffff;
+
+    /* Top e sidebar continuam escuros */
+    --bg-top: linear-gradient(90deg, #0b2f5b, #081f3d);
+    --bg-sidebar: linear-gradient(180deg, #0a2540, #071a2f);
+
+    /* Azul FitCell */
+    --primary: #0d6efd;
+    --primary-soft: rgba(13, 110, 253, 0.15);
+
+    --text-main: #0f172a;
+    --text-muted: #64748b;
+
+    --border-light: #e2e8f0;
+}
+
+
+/* ======================================================
+   🌍 BODY
+====================================================== */
+body {
+    margin: 0;
+    background: var(--bg-page);
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 14px;
+    line-height: 1.45;
+    color: var(--text-main);
+}
+
+/* ======================================================
+   🔝 TOP BAR
+====================================================== */
+.top-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 56px;
+    width: 100%;
+    background: var(--bg-top);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0,0,0,.35);
+    color: #fff;
+}
+
+.system-title {
+    font-weight: 600;
+    letter-spacing: .4px;
+}
+
+.user-info {
+    position: absolute;
+    right: 20px;
+    text-align: right;
+}
+
+.empresa-nome {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--primary);
+}
+
+.usuario-nome {
+    font-size: 11px;
+    color: rgba(255,255,255,.7);
+}
+
+/* ======================================================
+   📂 SIDEBAR (mantida forte)
+====================================================== */
+.sidebar {
+    position: fixed;
+    top: 56px;
+    left: 0;
+    width: 240px;
+    height: calc(100vh - 56px);
+    background: var(--bg-sidebar);
+    padding: 16px;
+    overflow-y: auto;
+}
+
+.sidebar h4 {
+    color: var(--primary);
+    text-align: center;
+    margin-bottom: 16px;
+}
+
+.sidebar a {
+    display: flex;
+    align-items: center;
+    padding: 10px 14px;
+    color: rgba(255,255,255,.75);
+    text-decoration: none;
+    border-radius: 10px;
+    transition: all .2s ease;
+    font-weight: 500;
+}
+
+.sidebar a i {
+    width: 22px;
+    margin-right: 10px;
+}
+
+.sidebar a:hover {
+    background: rgba(0,255,180,.18);
+    color: #fff;
+}
+
+/* ======================================================
+   📁 CATEGORIAS
+====================================================== */
+.sidebar-category {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 11px 14px;
+    margin-top: 6px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 600;
+    background: rgba(255,255,255,.06);
+    color: #fff;
+}
+
+.sidebar-category:hover,
+.sidebar-category.active {
+    background: rgba(0,255,180,.22);
+}
+
+.sidebar-submenu {
+    display: none;
+    margin-left: 8px;
+}
+
+.sidebar-submenu a {
+    font-size: 13px;
+    padding-left: 28px;
+}
+
+/* ======================================================
+   📦 CONTEÚDO
+====================================================== */
+.content {
+    margin-left: 260px;
+    margin-top: 70px;
+    padding: 24px;
+}
+
+/* ======================================================
+   📦 CARDS / BLOCOS
+====================================================== */
+.card,
+.box {
+    background: var(--bg-card);
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 10px 25px rgba(0,0,0,.08);
+}
+/* ======================================================
+   📊 TABELAS – PADRÃO SAAS (BOOTSTRAP 5)
+====================================================== */
+
+.table {
+    width: 100%;
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    overflow: hidden;
+    font-size: 14px;
+}
+
+/* Densidade tipo table-sm */
+.table th,
+.table td {
+    padding: 8px 12px;
+    vertical-align: middle;
+}
+
+/* Cabeçalho leve */
+.table thead {
+    background-color: #f8fafc;
+}
+
+.table thead th {
+    background-color: #f8fafc;
+    color: #334155;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+/* Corpo */
+.table tbody td {
+    border-bottom: 1px solid #e2e8f0;
+}
+
+/* Última linha sem borda */
+.table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Hover suave */
+.table-hover tbody tr:hover {
+    background-color: #f1f5f9;
+}
+
+/* Alinhamentos comuns */
+.table .text-center {
+    text-align: center;
+}
+
+.table .text-end {
+    text-align: right;
+}
+
+/* Texto auxiliar */
+.table .text-muted {
+    color: #64748b !important;
+}
+
+/* Ações */
+.table td .btn {
+    padding: 4px 8px;
+    font-size: 13px;
+    border-radius: 8px;
+}
+
+/* ======================================================
+   ✍️ INPUTS – PADRÃO SAAS
+====================================================== */
+.form-control,
+.form-select,
+input,
+select {
+    background: #ffffff;
+    color: var(--text-main);
+    border: 1.5px solid var(--border-light);
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: 14px;
+    transition: all .2s ease;
+}
+
+.form-control::placeholder {
+    color: var(--text-muted);
+}
+
+.form-control:focus,
+.form-select:focus,
+input:focus,
+select:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(0,255,180,.25);
+    outline: none;
+}
+
+/* ======================================================
+   🔽 SELECT2 – CLEAN
+====================================================== */
+
+.select2-container--bootstrap-5 .select2-selection {
+    background-color: #ffffff;
+    border: 2px solid #cbd5e1; /* 👈 borda forte visível */
+    border-radius: 10px;
+    min-height: 42px;
+    display: flex;
+    align-items: center;
+    padding-left: 8px;
+    font-size: 14px;
+    transition: all .15s ease;
+}
+
+
+/* Texto selecionado */
+.select2-container--bootstrap-5 .select2-selection__rendered {
+    color: #0f172a;
+    padding-left: 4px;
+}
+
+/* Ícone da seta */
+.select2-container--bootstrap-5 .select2-selection__arrow b {
+    border-color: #64748b transparent transparent transparent;
+}
+
+/* Hover */
+.select2-container--bootstrap-5 .select2-selection:hover {
+    border-color: #94a3b8;
+}
+
+/* Foco (aberto ou ativo) */
+.select2-container--bootstrap-5.select2-container--open .select2-selection,
+.select2-container--bootstrap-5 .select2-selection:focus-within {
+    border-color: #0d6efd; /* azul bootstrap */
+    box-shadow: 0 0 0 3px rgba(13,110,253,.25);
+}
+
+/* Dropdown */
+.select2-container--bootstrap-5 .select2-dropdown {
+    border-radius: 10px;
+    border: 1.5px solid #cbd5e1;
+    box-shadow: 0 12px 30px rgba(0,0,0,.15);
+}
+
+/* Opções */
+.select2-container--bootstrap-5 .select2-results__option {
+    padding: 8px 12px;
+    font-size: 14px;
+}
+
+/* Hover opção */
+.select2-container--bootstrap-5 .select2-results__option--highlighted {
+    background-color: #e7f1ff;
+    color: #0d6efd;
+}
+
+/* Busca dentro do select */
+.select2-container--bootstrap-5 .select2-search__field {
+    border-radius: 8px;
+    border: 1.5px solid #cbd5e1;
+    padding: 6px 8px;
+    outline: none;
+}
+
+/* Placeholder */
+.select2-container--bootstrap-5 .select2-selection__placeholder {
+    color: #94a3b8;
+}
+
+/* ======================================================
+   🔘 BOTÕES
+====================================================== */
+/* ======================================================
+   🔘 BOTÕES – SEM GRADIENTE (PADRÃO SAAS)
+====================================================== */
+
+.btn {
+    border-radius: 10px;
+    font-weight: 600;
+    padding: 8px 14px;
+    font-size: 14px;
+    box-shadow: none;
+}
+
+/* Ação principal */
+.btn-primary {
+    background: #0d6efd; /* azul bootstrap */
+    border: 1px solid #0d6efd;
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background: #0b5ed7;
+    border-color: #0b5ed7;
+}
+
+/* Info (Imprimir, Ver, Detalhes) */
+.btn-info {
+    background: #0dcaf0;
+    border: 1px solid #0dcaf0;
+    color: #ffffff;
+}
+
+.btn-info:hover {
+    background: #31d2f2;
+    border-color: #31d2f2;
+}
+
+/* Success */
+.btn-success {
+    background: #198754;
+    border: 1px solid #198754;
+    color: #ffffff;
+}
+
+.btn-success:hover {
+    background: #157347;
+    border-color: #157347;
+}
+
+/* Danger */
+.btn-danger {
+    background: #dc3545;
+    border: 1px solid #dc3545;
+    color: #ffffff;
+}
+
+.btn-danger:hover {
+    background: #bb2d3b;
+    border-color: #bb2d3b;
+}
+
+/* Secondary */
+.btn-secondary {
+    background: #e2e8f0;
+    border: 1px solid #cbd5e1;
+    color: #0f172a;
+}
+
+.btn-secondary:hover {
+    background: #cbd5e1;
+}
+
+
+/* ======================================================
+   🏠 HOME – LOGO
+====================================================== */
+/* ======================================================
+   🏠 HOME – LOGO CENTRALIZADA
+====================================================== */
+.home-hero {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.home-logo {
+    max-width: 192px;
+    width: 100%;
+    height: auto;
+    margin: 0 auto 24px auto;
+    display: block;
+
+    border-radius: 20px; /* 👈 arredondamento suave */
+    filter: drop-shadow(0 8px 24px rgba(13, 110, 253, 0.25));
+}
+
+
+
+
+
+/* ======================================================
+   📱 RESPONSIVO
+====================================================== */
+@media (max-width: 768px) {
+    .content {
+        margin-left: 0;
+    }
+
+    .sidebar {
+        width: 220px;
+    }
+}
+
+
+
+
+.card-kpi {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 20px;
+  border-radius: 14px;
+  color: #fff;
+  background: linear-gradient(135deg, #2c2f33, #1f2226);
+  box-shadow: 0 8px 20px rgba(0,0,0,.15);
+  transition: all .25s ease;
+  min-height: 100px;
+}
+
+.card-kpi:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 28px rgba(0,0,0,.25);
+}
+
+.kpi-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  background: rgba(255,255,255,.15);
+}
+
+.kpi-content small {
+  font-size: 12px;
+  opacity: .85;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+}
+
+.kpi-content h4 {
+  margin: 2px 0 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+/* Variações de cor */
+.kpi-primary {
+  background: linear-gradient(135deg, #4e73df, #224abe);
+}
+
+.kpi-success {
+  background: linear-gradient(135deg, #1cc88a, #13855c);
+}
+
+.kpi-warning {
+  background: linear-gradient(135deg, #f6c23e, #dda20a);
+}
+
+.kpi-dark {
+  background: linear-gradient(135deg, #343a40, #1d2124);
+}

@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container-fluid mt-3">
+
+  <h4 class="mb-3"><i class="fa-solid fa-truck-field"></i> Fornecedores</h4>
+
+  <!-- Ações -->
+  <div class="d-flex gap-2 mb-3 flex-wrap">
+    <a href="{{ url_for('routes.fitcell_novo_fornecedor') }}" class="btn btn-success">
+      <i class="fas fa-plus"></i> Novo Fornecedor
+    </a>
+  </div>
+
+  <hr>
+
+  <!-- Filtros -->
+  <form method="GET" class="row g-2 mb-3">
+
+    <div class="col-md-4">
+      <div class="input-group input-group-sm">
+        <span class="input-group-text">
+          <i class="fas fa-search"></i>
+        </span>
+
+        <input
+          type="text"
+          name="busca"
+          value="{{ busca }}"
+          class="form-control"
+          placeholder="Pesquisar por nome ou documento">
+
+        {% if busca %}
+        <a href="{{ url_for('routes.fitcell_listar_fornecedores') }}"
+           class="btn btn-outline-secondary"
+           title="Limpar busca">
+          <i class="fas fa-arrows-rotate"></i>
+        </a>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="col-md-2">
+      <button class="btn btn-primary w-100">
+        Filtrar
+      </button>
+    </div>
+
+  </form>
+
+  <!-- Tabela -->
+  <div class="table-responsive">
+    <table class="table table-bordered table-hover align-middle">
+      <thead class="table-dark">
+        <tr>
+          <th>Nome</th>
+          <th>Tipo</th>
+          <th>Documento</th>
+          <th>Telefone</th>
+          <th>Email</th>
+          <th>Status</th>
+          <th width="140">Ações</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {% for f in fornecedores %}
+        <tr>
+          <td>{{ f.nome }}</td>
+
+          <td>
+            {% if f.tipo == "PF" %}
+              Pessoa Física
+            {% else %}
+              Pessoa Jurídica
+            {% endif %}
+          </td>
+
+          <td>{{ f.documento or "-" }}</td>
+          <td>{{ f.telefone or "-" }}</td>
+          <td>{{ f.email or "-"}}</td>
+
+          <td>
+            {% if f.ativo %}
+              <span class="badge bg-success">Ativo</span>
+            {% else %}
+              <span class="badge bg-secondary">Inativo</span>
+            {% endif %}
+          </td>
+
+          <td>
+            <a href="{{ url_for('routes.fitcell_editar_fornecedor', id=f.id) }}"
+               class="btn btn-sm btn-warning">
+              Editar
+            </a>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="6" class="text-center text-muted">
+            Nenhum fornecedor encontrado.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<!-- Paginação -->
+{% if pagination.pages > 1 %}
+<nav class="mt-3">
+  <ul class="pagination justify-content-center">
+
+    <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+      <a class="page-link"
+         href="{{ url_for('routes.fitcell_listar_fornecedores',
+                          page=pagination.prev_num,
+                          busca=busca) }}">
+        «
+      </a>
+    </li>
+
+    {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+      {% if p %}
+      <li class="page-item {% if p == pagination.page %}active{% endif %}">
+        <a class="page-link"
+           href="{{ url_for('routes.fitcell_listar_fornecedores',
+                            page=p,
+                            busca=busca) }}">
+          {{ p }}
+        </a>
+      </li>
+      {% else %}
+      <li class="page-item disabled">
+        <span class="page-link">…</span>
+      </li>
+      {% endif %}
+    {% endfor %}
+
+    <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+      <a class="page-link"
+         href="{{ url_for('routes.fitcell_listar_fornecedores',
+                          page=pagination.next_num,
+                          busca=busca) }}">
+        »
+      </a>
+    </li>
+
+  </ul>
+</nav>
+{% endif %}
+
+{% endblock %}

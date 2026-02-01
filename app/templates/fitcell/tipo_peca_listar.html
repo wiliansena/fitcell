@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container-fluid mt-3">
+
+  <h4><i class="fa-solid fa-puzzle-piece"></i> Tipos de Peça</h4>
+  <hr>
+
+  <div class="d-flex justify-content-between mb-3">
+    <a href="{{ url_for('routes.fitcell_novo_tipo_peca') }}"
+       class="btn btn-success">
+      <i class="fas fa-plus"></i> Novo Tipo
+    </a>
+
+    <form method="GET" class="d-flex">
+      <input type="text"
+             name="busca"
+             value="{{ busca }}"
+             class="form-control form-control-sm me-2"
+             placeholder="Pesquisar">
+      <button class="btn btn-info btn-sm">
+        Buscar
+      </button>
+    </form>
+  </div>
+
+  <table class="table table-bordered table-hover align-middle">
+    <thead class="table-dark">
+      <tr>
+        <th>Nome</th>
+        <th width="120">Ações</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for t in tipos %}
+      <tr>
+        <td>{{ t.nome }}</td>
+        <td>
+          <a href="{{ url_for('routes.fitcell_editar_tipo_peca', id=t.id) }}"
+             class="btn btn-sm btn-warning">
+            Editar
+          </a>
+        </td>
+      </tr>
+      {% else %}
+      <tr>
+        <td colspan="3" class="text-center text-muted">
+          Nenhum tipo cadastrado.
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  {% if pagination.pages > 1 %}
+  <nav>
+    <ul class="pagination justify-content-center">
+      {% for p in pagination.iter_pages() %}
+      {% if p %}
+      <li class="page-item {% if p == pagination.page %}active{% endif %}">
+        <a class="page-link"
+           href="{{ url_for('routes.fitcell_listar_tipos_peca', page=p, busca=busca) }}">
+          {{ p }}
+        </a>
+      </li>
+      {% endif %}
+      {% endfor %}
+    </ul>
+  </nav>
+  {% endif %}
+
+</div>
+
+{% endblock %}

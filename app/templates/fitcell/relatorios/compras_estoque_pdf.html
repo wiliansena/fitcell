@@ -1,0 +1,66 @@
+{% extends "base_relatorio_pdf.html" %}
+
+{% block content %}
+
+<h2>Relatório de Compras de Estoque</h2>
+
+{% if data_ini and data_fim %}
+<p style="text-align:center;margin-bottom:10px;">
+  Período:
+  <strong>{{ data_ini|br_data }}</strong> até
+  <strong>{{ data_fim|br_data }}</strong>
+</p>
+{% endif %}
+
+<table>
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>Data</th>
+      <th>Fornecedor</th>
+      <th>Status</th>
+      <th>Total (R$)</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    {% for c in compras %}
+    <tr>
+      <td>{{ c.id }}</td>
+      <td>{{ c.criado_em|br_data }}</td>
+      <td>{{ c.fornecedor }}</td>
+      <td>{{ c.status }}</td>
+      <td>{{ c.total_compra|br_moeda }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<!-- QUEBRA DE PÁGINA -->
+<div style="page-break-before: always;"></div>
+
+<h3>Totais do Período</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th></th>
+      <th>Total (R$)</th>
+    </tr>
+  </thead>
+  <tbody>
+
+    <tr>
+      <th>Compras Ativas</th>
+      <td><strong>{{ total_ativo|br_moeda }}</strong></td>
+    </tr>
+
+    <tr>
+      <th>Compras Estornadas</th>
+      <td>{{ total_estornado|br_moeda }}</td>
+    </tr>
+
+  </tbody>
+</table>
+
+{% endblock %}

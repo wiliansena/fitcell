@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container-fluid mt-3">
+  <h4>{{ titulo }}</h4>
+  <hr>
+
+  <form method="POST">
+    {{ form.hidden_tag() }}
+
+    <div class="row mb-3">
+      <div class="col-md-6">
+        {{ form.nome.label(class="form-label") }}
+        {{ form.nome(class="form-control") }}
+      </div>
+    </div>
+
+    <button class="btn btn-success">
+      <i class="fas fa-save"></i> Salvar
+    </button>
+
+    <a href="{{ url_for('routes.fitcell_listar_tipos_peca') }}"
+       class="btn btn-secondary">
+      Voltar
+    </a>
+
+  </form>
+</div>
+
+{% endblock %}
