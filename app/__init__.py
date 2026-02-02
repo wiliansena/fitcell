@@ -24,6 +24,9 @@ def create_app():
     # ✅ Registro dos filtros personalizados
     from app.utils import registrar_filtros_jinja
     registrar_filtros_jinja(app)
+
+    from app.utils_datetime import utc_to_br
+    app.jinja_env.filters["utc_to_br"] = utc_to_br
     
 
     app.config.from_object(Config)  # Carrega as configurações do config.py
