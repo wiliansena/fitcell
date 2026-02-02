@@ -21,6 +21,33 @@ from app.utils_datetime import utc_now
 from app.utils_licenca import requer_licenca_ativa  # ← IMPORTA O MESMO BLUEPRINT DO routes.py
 from app.utils_uploads import salvar_upload
 
+
+##helpers  de DATAS PARA AS ROTAS ##
+
+from datetime import datetime, time
+from app.utils_datetime import br_to_utc
+
+def periodo_datetime(data_ini, data_fim):
+    dt_ini = None
+    dt_fim = None
+
+    if data_ini:
+        dt_ini_br = datetime.combine(
+            datetime.strptime(data_ini, "%Y-%m-%d").date(),
+            time.min
+        )
+        dt_ini = br_to_utc(dt_ini_br)
+
+    if data_fim:
+        dt_fim_br = datetime.combine(
+            datetime.strptime(data_fim, "%Y-%m-%d").date(),
+            time.max
+        )
+        dt_fim = br_to_utc(dt_fim_br)
+
+    return dt_ini, dt_fim
+
+
 @bp.route('/teste_fitcell')
 @login_required
 @requer_permissao("administrativo", "ver")
@@ -703,13 +730,12 @@ def fitcell_listar_compras_estoque():
     if status:
         query = query.filter(CompraEstoque.status == status)
 
-    if data_ini:
-        dt_ini = datetime.strptime(data_ini, "%Y-%m-%d")
-        query = query.filter(CompraEstoque.criado_em >= dt_ini)
 
-    if data_fim:
-        dt_fim = datetime.strptime(data_fim, "%Y-%m-%d") \
-                 .replace(hour=23, minute=59, second=59)
+    dt_ini, dt_fim = periodo_datetime(data_ini, data_fim)
+
+    if dt_ini:
+        query = query.filter(CompraEstoque.criado_em >= dt_ini)
+    if dt_fim:
         query = query.filter(CompraEstoque.criado_em <= dt_fim)
 
     compras = (
@@ -811,13 +837,11 @@ def fitcell_relatorio_compras_estoque_pdf():
     if fornecedor_id:
         query = query.filter(CompraEstoque.fornecedor_id == fornecedor_id)
 
-    if data_ini:
-        dt_ini = datetime.strptime(data_ini, "%Y-%m-%d")
-        query = query.filter(CompraEstoque.criado_em >= dt_ini)
+    dt_ini, dt_fim = periodo_datetime(data_ini, data_fim)
 
-    if data_fim:
-        dt_fim = datetime.strptime(data_fim, "%Y-%m-%d") \
-                 .replace(hour=23, minute=59, second=59)
+    if dt_ini:
+        query = query.filter(CompraEstoque.criado_em >= dt_ini)
+    if dt_fim:
         query = query.filter(CompraEstoque.criado_em <= dt_fim)
 
     compras = query.order_by(CompraEstoque.criado_em.desc()).all()
@@ -1143,13 +1167,11 @@ def fitcell_listar_vendas_pecas():
     # =========================
     # FILTRO DE DATAS (OPCIONAL)
     # =========================
-    if data_ini:
-        dt_ini = datetime.strptime(data_ini, "%Y-%m-%d")
-        query = query.filter(VendaPeca.criado_em >= dt_ini)
+    dt_ini, dt_fim = periodo_datetime(data_ini, data_fim)
 
-    if data_fim:
-        dt_fim = datetime.strptime(data_fim, "%Y-%m-%d") \
-                 .replace(hour=23, minute=59, second=59)
+    if dt_ini:
+        query = query.filter(VendaPeca.criado_em >= dt_ini)
+    if dt_fim:
         query = query.filter(VendaPeca.criado_em <= dt_fim)
 
     pagination = query.paginate(page=page, per_page=20)
@@ -1563,13 +1585,11 @@ def fitcell_relatorio_vendas_pecas_pdf():
     # =========================================
     # FILTRO DE DATA (SOMENTE SE INFORMADO)
     # =========================================
-    if data_ini:
-        dt_ini = datetime.strptime(data_ini, "%Y-%m-%d")
-        query = query.filter(VendaPeca.criado_em >= dt_ini)
+    dt_ini, dt_fim = periodo_datetime(data_ini, data_fim)
 
-    if data_fim:
-        dt_fim = datetime.strptime(data_fim, "%Y-%m-%d") \
-                 .replace(hour=23, minute=59, second=59)
+    if dt_ini:
+        query = query.filter(VendaPeca.criado_em >= dt_ini)
+    if dt_fim:
         query = query.filter(VendaPeca.criado_em <= dt_fim)
 
     vendas = query.all()
@@ -1619,24 +1639,24 @@ def fitcell_relatorio_compra_venda_pdf():
     data_ini = request.args.get("data_ini")
     data_fim = request.args.get("data_fim")
 
+    dt_ini, dt_fim = periodo_datetime(data_ini, data_fim)
+
     # =========================
     # TOTAL DE VENDAS
     # =========================
     q_vendas = (
         db.session.query(
-            func.sum(VendaPeca.valor_total)
+            func.coalesce(func.sum(VendaPeca.valor_total), 0)
         )
-        .filter(VendaPeca.empresa_id == current_user.empresa_id)
-        .filter(VendaPeca.status.in_(STATUS_FINANCEIRO_VALIDO))
+        .filter(
+            VendaPeca.empresa_id == current_user.empresa_id,
+            VendaPeca.status.in_(STATUS_FINANCEIRO_VALIDO)
+        )
     )
 
-    if data_ini:
-        dt_ini = datetime.strptime(data_ini, "%Y-%m-%d")
+    if dt_ini:
         q_vendas = q_vendas.filter(VendaPeca.criado_em >= dt_ini)
-
-    if data_fim:
-        dt_fim = datetime.strptime(data_fim, "%Y-%m-%d") \
-                 .replace(hour=23, minute=59, second=59)
+    if dt_fim:
         q_vendas = q_vendas.filter(VendaPeca.criado_em <= dt_fim)
 
     total_vendas = q_vendas.scalar() or 0
@@ -1646,20 +1666,24 @@ def fitcell_relatorio_compra_venda_pdf():
     # =========================
     q_compras = (
         db.session.query(
-            func.sum(
-                CompraEstoqueItem.quantidade *
-                CompraEstoqueItem.custo_unitario
+            func.coalesce(
+                func.sum(
+                    CompraEstoqueItem.quantidade *
+                    CompraEstoqueItem.custo_unitario
+                ),
+                0
             )
         )
         .join(CompraEstoque)
-        .filter(CompraEstoque.empresa_id == current_user.empresa_id)
-        .filter(CompraEstoque.status != "ESTORNADA")
+        .filter(
+            CompraEstoque.empresa_id == current_user.empresa_id,
+            CompraEstoque.status != "ESTORNADA"
+        )
     )
 
-    if data_ini:
+    if dt_ini:
         q_compras = q_compras.filter(CompraEstoque.criado_em >= dt_ini)
-
-    if data_fim:
+    if dt_fim:
         q_compras = q_compras.filter(CompraEstoque.criado_em <= dt_fim)
 
     total_compras = q_compras.scalar() or 0
@@ -1701,32 +1725,6 @@ def fitcell_relatorio_compra_venda_pdf():
 
 
 #### DASHBOARD FITCELL   ###
-
-##helpers ##
-
-
-##  helpers  ###
-from datetime import datetime, time
-from datetime import datetime, time
-
-def periodo_datetime(data_ini, data_fim):
-    dt_ini = None
-    dt_fim = None
-
-    if data_ini:
-        dt_ini = datetime.combine(
-            datetime.strptime(data_ini, "%Y-%m-%d").date(),
-            time.min
-        )
-
-    if data_fim:
-        dt_fim = datetime.combine(
-            datetime.strptime(data_fim, "%Y-%m-%d").date(),
-            time.max
-        )
-
-    return dt_ini, dt_fim
-
 
 
 from datetime import date, timedelta
@@ -1863,8 +1861,11 @@ def fitcell_bi_vendido_por_dia():
 
     dt_ini, dt_fim = periodo_datetime(data_ini, data_fim)
 
-    # 🔑 SEM CONVETER PARA UTC PQ NO BANCO ESTÁ OK BR
-    dia_br = func.date(VendaPeca.criado_em)
+    # convertendo UTC para America/SP
+    
+    dia_br = func.date(
+    VendaPeca.criado_em.op("AT TIME ZONE")("America/Sao_Paulo")
+    )
 
     q = (
         db.session.query(
@@ -1960,8 +1961,12 @@ def fitcell_bi_home_kpis():
 
     hoje = date.today()
 
-    dt_ini = datetime.combine(hoje, time.min)
-    dt_fim = datetime.combine(hoje, time.max)
+    dt_ini_br = datetime.combine(hoje, time.min)
+    dt_fim_br = datetime.combine(hoje, time.max)
+
+    dt_ini = br_to_utc(dt_ini_br)
+    dt_fim = br_to_utc(dt_fim_br)
+
 
     # =================================================
     # 🔹 VENDAS HOJE
@@ -2075,14 +2080,13 @@ def fitcell_listar_orcamentos():
     # =========================
     # FILTRO DE DATAS
     # =========================
-    if data_ini:
-        dt_ini = datetime.strptime(data_ini, "%Y-%m-%d")
-        query = query.filter(VendaPeca.criado_em >= dt_ini)
+    dt_ini, dt_fim = periodo_datetime(data_ini, data_fim)
 
-    if data_fim:
-        dt_fim = datetime.strptime(data_fim, "%Y-%m-%d") \
-                 .replace(hour=23, minute=59, second=59)
+    if dt_ini:
+        query = query.filter(VendaPeca.criado_em >= dt_ini)
+    if dt_fim:
         query = query.filter(VendaPeca.criado_em <= dt_fim)
+
 
     # =========================
     # PAGINAÇÃO
