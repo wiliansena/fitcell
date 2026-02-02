@@ -1864,7 +1864,9 @@ def fitcell_bi_vendido_por_dia():
     # convertendo UTC para America/SP
     
     dia_br = func.date(
-    VendaPeca.criado_em.op("AT TIME ZONE")("America/Sao_Paulo")
+        VendaPeca.criado_em
+            .op("AT TIME ZONE")("UTC")
+            .op("AT TIME ZONE")("America/Sao_Paulo")
     )
 
     q = (
