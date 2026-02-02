@@ -64,7 +64,7 @@
       <tbody>
         {% for m in movimentacoes %}
         <tr>
-          <td>{{ m.criado_em|br_data_hora }}</td>
+          <td>{{ m.criado_em| utc_to_br |br_data_hora }}</td>
           <td>{{ m.peca.codigo_interno or "-" }}</td>
           <td>{{ m.fornecedor.nome if m.fornecedor else "-" }}</td>
           <td>

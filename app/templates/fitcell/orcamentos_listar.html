@@ -79,7 +79,7 @@
         {% for v, qtd_itens in orcamentos %}
         <tr>
           <td>{{ v.id }}</td>
-          <td>{{ v.criado_em | br_data_hora }}</td>
+          <td>{{ v.criado_em| utc_to_br | br_data_hora }}</td>
           <td>
             {{ v.cliente_nome or "-" }}<br>
             <small class="text-muted">{{ v.cliente_telefone or "" }}</small>

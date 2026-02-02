@@ -81,7 +81,7 @@
         {% for c in compras.items %}
         <tr>
           <td>#{{ c.id }}</td>
-          <td>{{ c.criado_em|br_data_hora }}</td>
+          <td>{{ c.criado_em| utc_to_br |br_data_hora }}</td>
           <td>{{ c.fornecedor.nome }}</td>
           <td>
             {% if c.status == "ATIVA" %}

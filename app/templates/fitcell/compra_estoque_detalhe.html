@@ -37,7 +37,7 @@
 
         <div class="col-md-4">
           <strong>Data:</strong><br>
-          {{ compra.criado_em|br_data_hora }}
+          {{ compra.criado_em| utc_to_br |br_data_hora }}
         </div>
 
         <div class="col-md-4">

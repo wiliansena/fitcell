@@ -63,7 +63,7 @@
 
                 <div class="col-md-4 text-md-end">
                     <strong>Data:</strong><br>
-                    {{ venda.criado_em | br_data_hora }}
+                    {{ venda.criado_em| utc_to_br | br_data_hora }}
                 </div>
             </div>
         </div>
