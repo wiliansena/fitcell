@@ -1260,10 +1260,11 @@ def fitcell_receber_via_pix():
     # ========= MERCADO PAGO =========
     mp = MercadoPagoClient(current_user.empresa_id)
 
-    slug = current_user.empresa.slug.lower()
-    slug = ''.join(c for c in slug if c.isalnum())
+    telefone = venda.cliente_telefone or venda.id
+    telefone = ''.join(filter(str.isdigit, str(telefone)))
 
-    email_cliente = f"cliente{venda.id}@{slug}.com"
+    email_cliente = f"cliente{telefone}@fitcell.com.br"
+
 
 
     pagamento = mp.criar_pagamento(
