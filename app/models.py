@@ -255,18 +255,6 @@ class Cliente(EmpresaQueryMixin, db.Model):
     ativo = db.Column(db.Boolean, default=True)
     criado_em = db.Column(db.DateTime, default=utc_now)
 
-    # 🔹 NOVO RELACIONAMENTO (VENDA NOVA)
-    vendas = db.relationship(
-        "Venda",
-        back_populates="cliente",
-        lazy="dynamic"
-    )
-
-    # 🔹 LEGADO (STREAMING) — SEM back_populates
-    vendas_streaming = db.relationship(
-        "VendaStreaming",
-        lazy="dynamic"
-    )
 
 
 
