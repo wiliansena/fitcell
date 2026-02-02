@@ -23,9 +23,6 @@ from wtforms.validators import DataRequired, NumberRange, Optional
 
 from flask_wtf import FlaskForm
 
-##### STV #####
-
-##### STV #####
 
 class LicencaSistemaForm(FlaskForm):
     dias_acesso = IntegerField("Dias_De_Acesso", validators=[DataRequired()])
@@ -38,32 +35,6 @@ class UsuarioForm(FlaskForm):
     confirmar_senha = PasswordField('Confirmar Senha', validators=[DataRequired(), EqualTo('senha', message='As senhas devem coincidir.')])
     submit = SubmitField('Salvar')
 
-
-class ServicoForm(FlaskForm):
-    nome = StringField("Nome do Serviço", validators=[DataRequired()])
-    tipo = SelectField(
-        "Tipo",
-        choices=[
-            ("compartilhado", "Compartilhado"),
-            ("individual", "Individual"),
-        ],validators=[DataRequired()])
-    telas_total = IntegerField("Total de Telas", validators=[Optional(), NumberRange(min=1)])
-    valor_venda_padrao = DecimalField("Valor Venda Padrão", places=2, validators=[InputRequired()])
-    comissao_padrao = DecimalField("Comissão padrão", places=2, validators=[InputRequired()])
-    ativo = BooleanField("Ativo")
-    imagem = FileField("Imagem do Serviço")
-
-class ContaForm(FlaskForm):
-    email = StringField("Email da Conta", validators=[DataRequired(), Email()])
-    senha = StringField("Senha", validators=[Optional()]) 
-    servico_id = SelectField("Serviço", coerce=int, validators=[DataRequired()])
-    valor_venda_override = DecimalField("Venda personalizada (Opcional)", places=2, validators=[Optional()])
-    comissao_override = DecimalField("Comissão personalizada (Opcional)", places=2, validators=[Optional()])
-    valor_investido = DecimalField("Valor Investido", places=4, validators=[InputRequired()])
-    ativa = BooleanField("Conta Ativa")
-
-class VendaStreamingForm(FlaskForm):
-    telefone = StringField("Telefone do Cliente", validators=[DataRequired()])
 
 ## PAGAMENTO FORM ###
 
