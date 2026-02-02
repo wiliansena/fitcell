@@ -1260,9 +1260,11 @@ def fitcell_receber_via_pix():
     # ========= MERCADO PAGO =========
     mp = MercadoPagoClient(current_user.empresa_id)
 
-    email_cliente = (
-        f"cliente{venda.id}@{current_user.empresa.slug}.com"
-    )
+    slug = current_user.empresa.slug.lower()
+    slug = ''.join(c for c in slug if c.isalnum())
+
+    email_cliente = f"cliente{venda.id}@{slug}.com"
+
 
     pagamento = mp.criar_pagamento(
         valor=venda.valor_total,
@@ -1273,9 +1275,22 @@ def fitcell_receber_via_pix():
     venda.pagamento_id = str(pagamento["id"])
     venda.pagamento_status = pagamento["status"]
 
-    pix = pagamento["point_of_interaction"]["transaction_data"]
-    venda.pix_qr_code = pix["qr_code"]
-    venda.pix_qr_code_base64 = pix["qr_code_base64"]
+    poi = pagamento.get("point_of_interaction", {})
+    tx = poi.get("transaction_data")
+
+    if not tx:
+        current_app.logger.error(f"PIX não gerado: {pagamento}")
+
+        flash(
+            "Não foi possível gerar o QR Code Pix. Verifique os dados e tente novamente.",
+            "danger"
+        )
+        db.session.rollback()
+        return redirect(request.referrer)
+
+    venda.pix_qr_code = tx.get("qr_code")
+    venda.pix_qr_code_base64 = tx.get("qr_code_base64")
+
 
     db.session.commit()
 

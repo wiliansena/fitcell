@@ -154,7 +154,9 @@ class MercadoPagoClient:
             "description": descricao,
             "payment_method_id": "pix",
             "payer": {
-                "email": email
+                "email": email,
+                "first_name": "Cliente",
+                "last_name": "FITCELL"
             }
         }
 
