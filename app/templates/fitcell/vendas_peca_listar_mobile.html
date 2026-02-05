@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Vendas de Peças</title>
+
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+
+  <link rel="stylesheet" href="{{ url_for('static', filename='paginas3.css') }}">
+
+  <style>
+    body {
+      background: #eef4fb;
+    }
+
+    .mobile-container {
+      padding: 12px;
+      max-width: 540px;
+      margin: auto;
+    }
+
+    .section-card {
+      background: #fff;
+      border-radius: 18px;
+      padding: 16px;
+      box-shadow: 0 8px 22px rgba(0, 0, 0, .08);
+      margin-bottom: 14px;
+    }
+
+    .venda-total {
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .status {
+      font-size: 12px;
+      padding: 4px 10px;
+      border-radius: 20px;
+    }
+  </style>
+
+</head>
+
+<body>
+
+  <div class="mobile-container">
+
+    {% include '_flash_messages.html' %}
+
+    <!-- HEADER -->
+
+    <div class="d-flex align-items-center gap-2 mb-3">
+      
+
+      <div style="
+width:42px;
+height:42px;
+border-radius:14px;
+background:#0d6efd;
+color:white;
+display:flex;
+align-items:center;
+justify-content:center;">
+        <i class="fa-solid fa-cart-shopping"></i>
+      </div>
+      
+
+      <strong style="font-size:18px">Vendas de Peças</strong>
+      
+
+    </div>
+
+    <!-- AÇÕES -->
+
+    <div class="d-grid gap-2 mb-3">
+
+      <a href="{{ url_for('routes.fitcell_nova_venda_peca_mobile') }}" class="btn btn-success">
+        <i class="fa fa-plus"></i> Nova Venda
+      </a>
+
+      <a href="{{ url_for('routes.fitcell_relatorio_vendas_pecas_pdf',data_ini=data_ini,data_fim=data_fim) }}"
+        class="btn btn-danger">
+        <i class="fa fa-file-pdf"></i> Relatório
+      </a>
+
+      <a href="{{ url_for('routes.fitcell_relatorio_compra_venda_pdf',data_ini=data_ini,data_fim=data_fim) }}"
+        class="btn btn-outline-danger">
+        <i class="fa fa-file-pdf"></i> Compra × Venda
+      </a>
+      <a href="{{ url_for('routes.home_mobile') }}" class="btn btn-secondary">
+        Voltar
+      </a>
+    </div>
+
+    <!-- FILTROS -->
+
+    <div class="section-card">
+
+      <form method="GET">
+
+        <div class="mb-2">
+          Data Inicio:<input type="date" name="data_ini" value="{{data_ini or ''}}" class="form-control">
+        </div>
+
+        <div class="mb-2">
+          Data Fim:<input type="date" name="data_fim" value="{{data_fim or ''}}" class="form-control">
+        </div>
+
+        <div class="mb-2">
+          <input type="text" name="busca" value="{{busca}}" class="form-control" placeholder="Cliente ou telefone">
+        </div>
+
+        <div class="d-grid gap-2">
+
+          <button class="btn btn-primary">Filtrar</button>
+
+          {% if busca or data_ini or data_fim %}
+          <a href="{{ url_for('routes.fitcell_listar_vendas_pecas_mobile') }}" class="btn btn-secondary">
+            Limpar filtros
+          </a>
+          {% endif %}
+
+        </div>
+
+      </form>
+
+    </div>
+
+    <!-- LISTA -->
+
+    {% for v,qtd_itens in vendas %}
+
+    <div class="section-card">
+
+      <div class="d-flex justify-content-between mb-1">
+
+        <strong>#{{v.id}}</strong>
+        <small class="text-muted">{{ v.criado_em|utc_to_br|br_data_hora }}</small>
+
+      </div>
+
+      <div class="mb-1">
+        <strong>{{ v.cliente_nome or "-" }}</strong>
+      </div>
+
+      <div class="text-muted mb-2">
+        Pagamento: {{ v.tipo_pagamento|upper }}
+      </div>
+
+      <div class="d-flex justify-content-between align-items-center mb-2">
+
+        <div>
+          Qtd Peças:
+          <span class="badge bg-secondary">{{ qtd_itens }}</span>
+        </div>
+
+        <div class="venda-total">
+          R$ {{ v.valor_total|br_moeda }}
+        </div>
+
+      </div>
+
+      <div class="d-flex justify-content-between align-items-center">
+
+        <div>
+
+          {% if v.status == 'FINALIZADA' %}
+          <span class="badge bg-success">Finalizada</span>
+
+          {% elif v.status == 'AGUARDANDO_PAGAMENTO' %}
+          <span class="badge bg-warning text-dark">Aguardando</span>
+
+          {% elif v.status == 'CANCELADA' %}
+          <span class="badge bg-danger">Cancelada</span>
+
+          {% else %}
+          <span class="badge bg-secondary">{{ v.status }}</span>
+          {% endif %}
+
+        </div>
+
+        <a href="{{ url_for('routes.fitcell_ver_venda_peca_mobile', id=v.id) }}" class="btn btn-primary btn-sm">
+          Ver
+        </a>
+
+      </div>
+
+    </div>
+
+    {% else %}
+
+    <div class="section-card text-center text-muted">
+      Nenhuma venda encontrada.
+    </div>
+
+    {% endfor %}
+    <div class="d-grid gap-2 mb-3">
+      <a href="{{ url_for('routes.home_mobile') }}" class="btn btn-secondary">
+        Voltar
+      </a>
+    </div>
+
+    <!-- PAGINAÇÃO -->
+
+    {% if pagination.pages > 1 %}
+
+    <div class="d-flex justify-content-between mt-3">
+
+      {% if pagination.has_prev %}
+      <a class="btn btn-secondary" href="{{ url_for(request.endpoint,page=pagination.prev_num) }}">
+        Anterior
+      </a>
+      {% else %}
+      <div></div>
+      {% endif %}
+
+      {% if pagination.has_next %}
+      <a class="btn btn-secondary" href="{{ url_for(request.endpoint,page=pagination.next_num) }}">
+        Próxima
+      </a>
+      {% endif %}
+
+    </div>
+
+    {% endif %}
+
+  </div>
+
+</body>
+
+</html>

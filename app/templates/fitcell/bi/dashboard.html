@@ -2,232 +2,242 @@
 <html lang="pt-br">
 
 <head>
-  <meta charset="UTF-8">
-  <title>Dashboard Fitcell</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="UTF-8">
+<title>Dashboard Fitcell</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
+<link rel="stylesheet" href="{{ url_for('static', filename='paginas3.css') }}">
 
+<style>
 
-  <style>
-    body {
-      background: radial-gradient(circle at top, #0d1b2a, #000814);
-      color: #fff;
-      font-family: Inter, system-ui, Arial, sans-serif;
-    }
+body{
+background:#eef4fb;
+font-family:Inter,system-ui,sans-serif;
+}
 
-    .card-dark {
-      background: linear-gradient(145deg, #0b132b, #020617);
-      border-radius: 16px;
-      padding: 20px;
-      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .05);
-    }
+.page{
+max-width:1200px;
+margin:auto;
+padding:20px;
+}
 
-    .kpi-title {
-      font-size: 13px;
-      opacity: .85;
-    }
+.section-card{
+background:#fff;
+border-radius:18px;
+padding:18px;
+box-shadow:0 8px 22px rgba(0,0,0,.08);
+}
 
-    .kpi-value {
-      font-size: 28px;
-      font-weight: 700;
-    }
-  </style>
+.kpi-box{
+display:flex;
+align-items:center;
+gap:14px;
+}
+
+.kpi-icon{
+width:46px;
+height:46px;
+border-radius:14px;
+background:#0d6efd;
+color:#fff;
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:20px;
+}
+
+.kpi-title{
+font-size:12px;
+color:#64748b;
+font-weight:600;
+}
+
+.kpi-value{
+font-size:22px;
+font-weight:800;
+color:#0f172a;
+}
+
+</style>
 </head>
 
 <body>
 
-  <div class="container-fluid p-4">
+<div class="page">
 
-    <h3 class="mb-4 fw-bold">Dashboard Fitcell</h3>
+<h4 class="mb-3 fw-bold">
+<i class="fa-solid fa-chart-column text-primary"></i>
+Dashboard Fitcell
+</h4>
 
-    <!-- Filtros -->
-    <form method="GET" class="row g-3 mb-4">
-      <div class="col-md-3">
-        <label class="form-label">De</label>
-        <input type="date" name="data_ini" value="{{ data_ini }}" class="form-control">
-      </div>
+<!-- FILTROS -->
 
-      <div class="col-md-3">
-        <label class="form-label">Até</label>
-        <input type="date" name="data_fim" value="{{ data_fim }}" class="form-control">
-      </div>
+<form method="GET" class="row g-3 mb-3">
 
-      <div class="col-md-3 d-flex align-items-end">
-        <button class="btn btn-info w-100 fw-bold">Aplicar</button>
-      </div>
+<div class="col-md-3">
+<label class="form-label">De</label>
+<input type="date" name="data_ini" value="{{ data_ini }}" class="form-control">
+</div>
 
-      <div class="col-md-3 d-flex align-items-end">
-        <a href="{{ url_for('routes.home') }}" class="btn btn-outline-light w-100">
-          ← Voltar
-        </a>
-      </div>
-            <div class="col-md-3 d-flex align-items-end">
-        <a href="{{ url_for('routes.fitcell_bi_dashboard') }}" class="btn btn-secondary w-100">
-          <i class="fa-solid fa-rotate"></i> Atualizar
-        </a>
-      </div>
-    </form>
+<div class="col-md-3">
+<label class="form-label">Até</label>
+<input type="date" name="data_fim" value="{{ data_fim }}" class="form-control">
+</div>
 
-    <!-- KPIs -->
-    <div class="row g-3">
+<div class="col-md-2 d-flex align-items-end">
+<button class="btn btn-primary w-100">Aplicar</button>
+</div>
 
-      <div class="col-md-3 col-6">
-        <div class="card-dark">
-          <div class="kpi-title">Quantidade Vendida</div>
-          <div id="kpi-qtd-vendida" class="kpi-value">—</div>
-        </div>
-      </div>
+<div class="col-md-2 d-flex align-items-end">
+<a href="{{ url_for('routes.home') }}" class="btn btn-secondary w-100">
+Voltar
+</a>
+</div>
 
-      <div class="col-md-3 col-6">
-        <div class="card-dark">
-          <div class="kpi-title">Valor Vendido</div>
-          <div id="kpi-valor-vendido" class="kpi-value">—</div>
-        </div>
-      </div>
+<div class="col-md-2 d-flex align-items-end">
+<a href="{{ url_for('routes.fitcell_bi_dashboard') }}" class="btn btn-outline-secondary w-100">
+<i class="fa-solid fa-rotate"></i>
+</a>
+</div>
 
-      <div class="col-md-3 col-6">
-        <div class="card-dark">
-          <div class="kpi-title">Quantidade em Estoque</div>
-          <div id="kpi-qtd-estoque" class="kpi-value">—</div>
-        </div>
-      </div>
+</form>
 
-      <div class="col-md-3 col-6">
-        <div class="card-dark">
-          <div class="kpi-title">Valor em Estoque</div>
-          <div id="kpi-valor-estoque" class="kpi-value">—</div>
-        </div>
-      </div>
+<!-- KPIs -->
 
-    </div>
-    <div class="row g-4 mt-3">
+<div class="row g-3 mb-4">
 
-      <!-- Vendido por dia -->
-      <div class="col-md-6">
-        <div class="card-dark">
-          <h6 class="mb-3">Vendido por dia</h6>
-          <canvas id="chartVendidoDia"></canvas>
-        </div>
-      </div>
+<div class="col-md-3 col-6">
+<div class="section-card">
+<div class="kpi-box">
+<div class="kpi-icon">
+<i class="fa-solid fa-cart-shopping"></i>
+</div>
+<div>
+<div class="kpi-title">Qtd Vendida</div>
+<div id="kpi-qtd-vendida" class="kpi-value">—</div>
+</div>
+</div>
+</div>
+</div>
 
-      <!-- Top peças -->
-      <div class="col-md-6">
-        <div class="card-dark">
-          <h6 class="mb-3">Top 5 peças vendidas</h6>
-          <canvas id="chartTopPecas"></canvas>
-        </div>
-      </div>
+<div class="col-md-3 col-6">
+<div class="section-card">
+<div class="kpi-box">
+<div class="kpi-icon">
+<i class="fa-solid fa-dollar-sign"></i>
+</div>
+<div>
+<div class="kpi-title">Valor Vendido</div>
+<div id="kpi-valor-vendido" class="kpi-value">—</div>
+</div>
+</div>
+</div>
+</div>
 
-    </div>
+<div class="col-md-3 col-6">
+<div class="section-card">
+<div class="kpi-box">
+<div class="kpi-icon">
+<i class="fa-solid fa-boxes-stacked"></i>
+</div>
+<div>
+<div class="kpi-title">Qtd Estoque</div>
+<div id="kpi-qtd-estoque" class="kpi-value">—</div>
+</div>
+</div>
+</div>
+</div>
 
+<div class="col-md-3 col-6">
+<div class="section-card">
+<div class="kpi-box">
+<div class="kpi-icon">
+<i class="fa-solid fa-warehouse"></i>
+</div>
+<div>
+<div class="kpi-title">Valor Estoque</div>
+<div id="kpi-valor-estoque" class="kpi-value">—</div>
+</div>
+</div>
+</div>
+</div>
 
-  </div>
+</div>
+
+<!-- GRÁFICOS -->
+
+<div class="row g-4">
+
+<div class="col-md-6">
+<div class="section-card">
+<h6 class="mb-3">Vendido por dia</h6>
+<canvas id="chartVendidoDia"></canvas>
+</div>
+</div>
+
+<div class="col-md-6">
+<div class="section-card">
+<h6 class="mb-3">Top 5 peças vendidas</h6>
+<canvas id="chartTopPecas"></canvas>
+</div>
+</div>
+
+</div>
+
+</div>
 
 <script>
-  // 🔹 parâmetros do filtro (UMA VEZ SÓ)
-  const params = new URLSearchParams(window.location.search).toString();
+const params = new URLSearchParams(window.location.search).toString();
 
-  // ==============================
-  // 🔹 KPIs
-  // ==============================
-  fetch(`/fitcell/bi/kpis?${params}`)
-    .then(r => r.json())
-    .then(d => {
-      document.getElementById("kpi-qtd-vendida").innerText = d.qtd_vendida;
-      document.getElementById("kpi-valor-vendido").innerText = d.valor_vendido;
-      document.getElementById("kpi-qtd-estoque").innerText = d.qtd_estoque;
-      document.getElementById("kpi-valor-estoque").innerText = d.valor_estoque;
-    });
+fetch(`/fitcell/bi/kpis?${params}`)
+.then(r=>r.json())
+.then(d=>{
+document.getElementById("kpi-qtd-vendida").innerText=d.qtd_vendida;
+document.getElementById("kpi-valor-vendido").innerText=d.valor_vendido;
+document.getElementById("kpi-qtd-estoque").innerText=d.qtd_estoque;
+document.getElementById("kpi-valor-estoque").innerText=d.valor_estoque;
+});
 
-  // ==============================
-  // 📈 Vendido por dia (linha)
-  // ==============================
-  fetch(`/fitcell/bi/vendido-por-dia?${params}`)
-    .then(r => r.json())
-    .then(rows => {
-      new Chart(document.getElementById("chartVendidoDia"), {
-        type: "line",
-        data: {
-          labels: rows.map(r => r.dia),
-          datasets: [{
-            label: "R$ Vendido",
-            data: rows.map(r => r.total),
-            borderColor: "#22d3ee",
-            backgroundColor: "rgba(34,211,238,.15)",
-            tension: 0.3,
-            fill: true
-          }]
-        },
-        options: {
-          responsive: true,
-          plugins: {
-            legend: { display: false }
-          },
-          scales: {
-            x: {
-              ticks: { color: "#94a3b8" },
-              grid: { color: "rgba(255,255,255,.05)" }
-            },
-            y: {
-              ticks: { color: "#94a3b8" },
-              grid: { color: "rgba(255,255,255,.05)" }
-            }
-          }
-        }
-      });
-    });
+fetch(`/fitcell/bi/vendido-por-dia?${params}`)
+.then(r=>r.json())
+.then(rows=>{
+new Chart(document.getElementById("chartVendidoDia"),{
+type:"line",
+data:{
+labels:rows.map(r=>r.dia),
+datasets:[{
+data:rows.map(r=>r.total),
+borderColor:"#0d6efd",
+backgroundColor:"rgba(13,110,253,.15)",
+tension:.3,
+fill:true
+}]
+},
+options:{plugins:{legend:{display:false}}}
+});
+});
 
-  // ==============================
-  // 📦 Top 5 peças vendidas (HORIZONTAL)
-  // ==============================
-  fetch(`/fitcell/bi/top-pecas?${params}`)
-    .then(r => r.json())
-    .then(rows => {
-      new Chart(document.getElementById("chartTopPecas"), {
-        type: "bar",
-        data: {
-          labels: rows.map(r => r.codigo),
-          datasets: [{
-            label: "Quantidade vendida",
-            data: rows.map(r => r.quantidade),
-            backgroundColor: "#22d3ee",
-            borderRadius: 6
-          }]
-        },
-        options: {
-          indexAxis: "y",
-          responsive: true,
-          plugins: {
-            legend: { display: false },
-            tooltip: {
-              callbacks: {
-                title: (items) => {
-                  const r = rows[items[0].dataIndex];
-                  return r.nome || r.codigo;
-                },
-                label: (item) => `Quantidade vendida: ${item.raw}`
-              }
-            }
-          },
-          scales: {
-            x: {
-              ticks: { color: "#94a3b8" },
-              grid: { color: "rgba(255,255,255,.05)" }
-            },
-            y: {
-              ticks: { color: "#94a3b8" },
-              grid: { display: false }
-            }
-          }
-        }
-      });
-    });
+fetch(`/fitcell/bi/top-pecas?${params}`)
+.then(r=>r.json())
+.then(rows=>{
+new Chart(document.getElementById("chartTopPecas"),{
+type:"bar",
+data:{
+labels:rows.map(r=>r.codigo),
+datasets:[{
+data:rows.map(r=>r.quantidade),
+backgroundColor:"#0d6efd",
+borderRadius:6
+}]
+},
+options:{indexAxis:"y",plugins:{legend:{display:false}}}
+});
+});
 </script>
 
 </body>
-
 </html>

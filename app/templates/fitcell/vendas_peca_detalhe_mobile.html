@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Venda #{{ venda.id }}</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+
+<link rel="stylesheet" href="{{ url_for('static', filename='paginas3.css') }}">
+
+<style>
+
+body{background:#eef4fb;}
+
+.mobile-container{
+  padding:12px;
+  max-width:540px;
+  margin:auto;
+}
+
+.section-card{
+  background:#fff;
+  border-radius:18px;
+  padding:16px;
+  box-shadow:0 8px 22px rgba(0,0,0,.08);
+  margin-bottom:14px;
+}
+
+.total-geral{
+  font-size:22px;
+  font-weight:700;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="mobile-container">
+
+{% include '_flash_messages.html' %}
+
+<!-- HEADER -->
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+
+<div class="d-flex align-items-center gap-2">
+
+<div style="
+width:42px;height:42px;border-radius:14px;
+background:#0d6efd;color:white;
+display:flex;align-items:center;justify-content:center;">
+<i class="fa-solid fa-receipt"></i>
+</div>
+
+<strong style="font-size:18px">Venda #{{ venda.id }}</strong>
+
+</div>
+
+<a href="{{ url_for('routes.fitcell_listar_vendas_pecas_mobile') }}"
+class="btn btn-secondary btn-sm">
+Voltar
+</a>
+
+</div>
+
+<!-- AÇÕES -->
+
+<div class="d-grid gap-2 mb-3">
+
+<a href="{{ url_for('routes.fitcell_venda_peca_pdf', venda_id=venda.id) }}"
+target="_blank"
+class="btn btn-primary">
+<i class="fa fa-print"></i> Imprimir
+</a>
+
+{% if venda.status != "CANCELADA" %}
+<form method="POST"
+action="{{ url_for('routes.fitcell_cancelar_venda_peca', id=venda.id) }}"
+onsubmit="return confirm('Deseja realmente cancelar esta venda? O estoque será estornado.')">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+<button class="btn btn-danger w-100">Cancelar Venda</button>
+</form>
+{% else %}
+<span class="badge bg-secondary text-center">Venda Cancelada</span>
+{% endif %}
+
+</div>
+
+<!-- DADOS -->
+
+<div class="section-card">
+
+<div><strong>Cliente:</strong> {{ venda.cliente_nome or "-" }}</div>
+<div><strong>Telefone:</strong> {{ venda.cliente_telefone or "-" }}</div>
+<div><strong>Pagamento:</strong>
+<span class="badge bg-info text-dark">{{ venda.tipo_pagamento|upper }}</span>
+</div>
+
+<div class="text-muted mt-1">
+{{ venda.criado_em|utc_to_br|br_data_hora }}
+</div>
+
+</div>
+
+<!-- ITENS -->
+
+{% for item in venda.itens %}
+
+<div class="section-card">
+
+<strong>{{ item.peca.nome }}</strong>
+
+<div class="text-muted mb-2">
+{{ item.peca.qualidade|replace("_"," ")|title }}
+</div>
+
+<div class="d-flex justify-content-between">
+<span>Qtd: {{ item.quantidade }}</span>
+<span>Unit: R$ {{ item.valor_unitario|br_moeda }}</span>
+</div>
+
+<hr>
+
+<div class="text-end">
+<strong>Total:</strong>
+R$ {{ item.valor_total|br_moeda }}
+</div>
+
+</div>
+
+{% endfor %}
+
+<!-- PIX -->
+
+{% if venda.tipo_pagamento == "pix" and venda.status == "AGUARDANDO_PAGAMENTO" %}
+
+<div class="section-card text-center" id="bloco-pix">
+
+<h6>Pagamento via Pix</h6>
+
+<img id="pix-qrcode"
+src="data:image/png;base64,{{ venda.pix_qr_code_base64 }}"
+class="img-fluid mb-3"
+style="max-width:220px">
+
+<div class="input-group mb-2">
+<input id="pix-copia-cola" class="form-control"
+value="{{ venda.pix_qr_code }}" readonly>
+
+<button class="btn btn-outline-primary" onclick="copiarPix()">Copiar</button>
+</div>
+
+<small class="text-muted">Aguardando pagamento…</small>
+
+</div>
+
+{% endif %}
+
+<!-- TOTAIS -->
+
+<div class="section-card text-end">
+
+<div>Subtotal: R$ {{ venda.subtotal|br_moeda }}</div>
+
+{% if venda.valor_desconto > 0 %}
+<div class="text-danger">
+Desconto: - R$ {{ venda.valor_desconto|br_moeda }}
+</div>
+{% endif %}
+
+<hr>
+
+<div class="total-geral text-primary">
+Total: R$ {{ venda.total_com_desconto|br_moeda }}
+</div>
+
+</div>
+
+{% if venda.status == "ORCAMENTO" %}
+
+<div class="d-grid gap-2">
+
+<a href="{{ url_for('routes.fitcell_enviar_orcamento_whatsapp', id=venda.id) }}"
+class="btn btn-success">
+<i class="fab fa-whatsapp"></i> Enviar orçamento
+</a>
+
+<a href="{{ url_for('routes.fitcell_ver_venda_peca', id=venda.id) }}"
+class="btn btn-primary">
+Converter em venda
+</a>
+
+</div>
+
+{% endif %}
+
+</div>
+
+<script>
+
+let pollingAtivo=true;
+
+function copiarPix(){
+const i=document.getElementById("pix-copia-cola");
+i.select();document.execCommand("copy");
+alert("Pix copiado!");
+}
+
+function atualizarStatusVenda(){
+
+if(!pollingAtivo)return;
+
+fetch("{{ url_for('routes.fitcell_status_venda_peca', id=venda.id) }}")
+.then(r=>r.json())
+.then(data=>{
+
+if(data.status==="FINALIZADA"){
+pollingAtivo=false;
+
+document.getElementById("bloco-pix").innerHTML=`
+<div class="alert alert-success">
+Pagamento confirmado!
+</div>`;
+}
+
+if(data.pix_qr_code_base64){
+document.getElementById("pix-qrcode").src="data:image/png;base64,"+data.pix_qr_code_base64;
+}
+
+});
+}
+
+setInterval(atualizarStatusVenda,5000);
+
+</script>
+
+</body>
+</html>
