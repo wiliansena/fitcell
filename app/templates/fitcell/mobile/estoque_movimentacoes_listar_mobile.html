@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Movimentações</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+
+<link rel="stylesheet" href="{{ url_for('static', filename='paginas3.css') }}">
+
+<style>
+body{background:#eef4fb;}
+.mobile-container{padding:12px;max-width:540px;margin:auto;}
+.card-mov{background:#fff;border-radius:16px;padding:12px;box-shadow:0 6px 18px rgba(0,0,0,.08);margin-bottom:12px;}
+</style>
+</head>
+
+<body>
+
+<div class="mobile-container">
+
+{% include "_flash_messages.html" %}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+<strong style="font-size:18px">Movimentações</strong>
+
+<a href="{{ url_for('routes.home_mobile') }}"
+class="btn btn-secondary btn-sm">Voltar</a>
+</div>
+
+<form method="GET" class="mb-3">
+
+<input type="text"
+name="busca"
+value="{{ busca }}"
+class="form-control"
+placeholder="Buscar peça ou observação">
+
+</form>
+
+{% for m in movimentacoes %}
+
+<div class="card-mov">
+
+<div class="fw-semibold text-primary">
+{{ m.peca.nome }}
+</div>
+
+<small class="text-muted">
+{{ m.peca.codigo_interno }}
+</small>
+
+<div class="mt-1 small">
+{{ m.criado_em | utc_to_br | br_data_hora }}
+</div>
+
+<div class="mt-2 d-flex justify-content-between align-items-center">
+
+{% if m.tipo == "entrada" %}
+<span class="badge bg-success">Entrada</span>
+{% elif m.tipo == "estorno" %}
+<span class="badge bg-danger">Estorno</span>
+{% else %}
+<span class="badge bg-secondary">{{ m.tipo }}</span>
+{% endif %}
+
+<strong>
+{{ m.quantidade }}
+</strong>
+
+</div>
+
+{% if m.observacao %}
+<div class="mt-1 small text-muted">
+{{ m.observacao }}
+</div>
+{% endif %}
+
+</div>
+
+{% else %}
+
+<div class="card-mov text-center text-muted">
+Nenhuma movimentação encontrada.
+</div>
+
+{% endfor %}
+
+{% if pagination.pages > 1 %}
+
+<div class="d-flex justify-content-between mt-3">
+
+{% if pagination.has_prev %}
+<a class="btn btn-secondary"
+href="{{ url_for(request.endpoint,page=pagination.prev_num,busca=busca,tipo=tipo) }}">Anterior</a>
+{% else %}<div></div>{% endif %}
+
+{% if pagination.has_next %}
+<a class="btn btn-secondary"
+href="{{ url_for(request.endpoint,page=pagination.next_num,busca=busca,tipo=tipo) }}">Próxima</a>
+{% endif %}
+
+</div>
+
+{% endif %}
+
+</div>
+
+</body>
+</html>

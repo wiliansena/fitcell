@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Compras de Estoque</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+
+<link rel="stylesheet" href="{{ url_for('static', filename='paginas3.css') }}">
+
+<style>
+body{background:#eef4fb;}
+.mobile-container{padding:12px;max-width:540px;margin:auto;}
+.card-compra{background:#fff;border-radius:16px;padding:12px;box-shadow:0 6px 18px rgba(0,0,0,.08);margin-bottom:12px;}
+</style>
+</head>
+
+<body>
+
+<div class="mobile-container">
+
+{% include "_flash_messages.html" %}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+<strong style="font-size:18px">Compras de Estoque</strong>
+<a href="{{ url_for('routes.home_mobile') }}" class="btn btn-secondary btn-sm">Voltar</a>
+</div>
+<a href="{{ url_for('routes.fitcell_nova_compra_estoque_mobile') }}"
+class="btn btn-success w-100 mb-3">
+<i class="fa fa-plus"></i> Nova Compra
+</a>
+
+
+{% for c in compras.items %}
+
+<a href="{{ url_for('routes.fitcell_ver_compra_estoque_mobile', id=c.id) }}" class="text-decoration-none">
+
+<div class="card-compra">
+
+<div class="fw-semibold text-primary">
+Compra #{{ c.id }}
+</div>
+
+<small class="text-muted">
+{{ c.fornecedor.nome }}
+</small>
+
+<div class="mt-1 small">
+{{ c.criado_em | utc_to_br | br_data_hora }}
+</div>
+
+<div class="mt-2">
+
+{% if c.status == "ESTORNADA" %}
+<span class="badge bg-danger">Estornada</span>
+{% else %}
+<span class="badge bg-success">Ativa</span>
+{% endif %}
+
+</div>
+
+</div>
+
+</a>
+
+{% else %}
+
+<div class="card-compra text-center text-muted">
+Nenhuma compra encontrada.
+</div>
+
+{% endfor %}
+
+{% if compras.pages > 1 %}
+
+<div class="d-flex justify-content-between mt-3">
+
+{% if compras.has_prev %}
+<a class="btn btn-secondary"
+href="{{ url_for(request.endpoint,page=compras.prev_num) }}">Anterior</a>
+{% else %}<div></div>{% endif %}
+
+{% if compras.has_next %}
+<a class="btn btn-secondary"
+href="{{ url_for(request.endpoint,page=compras.next_num) }}">Próxima</a>
+{% endif %}
+
+</div>
+
+{% endif %}
+
+</div>
+
+</body>
+</html>

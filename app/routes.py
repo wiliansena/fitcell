@@ -19,7 +19,7 @@ from app.utils_licenca import requer_licenca_ativa
 bp = Blueprint('routes', __name__)
 
 
-from app import routes_pagamento, routes_fitcell
+from app import routes_pagamento, routes_fitcell, routes_fitcell_mobile
 
 
 UPLOAD_FOLDER = 'app/static/uploads'

@@ -794,95 +794,6 @@ def fitcell_ver_compra_estoque(id):
         total_compra=total_compra
     )
 
-from datetime import datetime
-from flask import request, make_response, render_template
-from weasyprint import HTML
-from sqlalchemy import func
-
-@bp.route("/fitcell/relatorios/compras-estoque/pdf")
-@login_required
-@requer_licenca_ativa
-@requer_permissao("estoque", "ver")
-def fitcell_relatorio_compras_estoque_pdf():
-
-    data_ini = request.args.get("data_ini")
-    data_fim = request.args.get("data_fim")
-    fornecedor_id = request.args.get("fornecedor_id")
-
-    query = (
-        db.session.query(
-            CompraEstoque.id,
-            CompraEstoque.criado_em,
-            Fornecedor.nome.label("fornecedor"),
-            CompraEstoque.status,
-            func.sum(
-                CompraEstoqueItem.quantidade *
-                CompraEstoqueItem.custo_unitario
-            ).label("total_compra")
-        )
-        .join(Fornecedor, Fornecedor.id == CompraEstoque.fornecedor_id)
-        .join(CompraEstoqueItem, CompraEstoqueItem.compra_id == CompraEstoque.id)
-        .filter(CompraEstoque.empresa_id == current_user.empresa_id)
-        .group_by(
-            CompraEstoque.id,
-            CompraEstoque.criado_em,
-            Fornecedor.nome,
-            CompraEstoque.status
-        )
-    )
-
-    # =========================
-    # FILTROS
-    # =========================
-    if fornecedor_id:
-        query = query.filter(CompraEstoque.fornecedor_id == fornecedor_id)
-
-    dt_ini, dt_fim = periodo_datetime(data_ini, data_fim)
-
-    if dt_ini:
-        query = query.filter(CompraEstoque.criado_em >= dt_ini)
-    if dt_fim:
-        query = query.filter(CompraEstoque.criado_em <= dt_fim)
-
-    compras = query.order_by(CompraEstoque.criado_em.desc()).all()
-
-    # =========================
-    # TOTAIS
-    # =========================
-    total_ativo = sum(
-        c.total_compra or 0
-        for c in compras
-        if c.status != "ESTORNADA"
-    )
-
-    total_estornado = sum(
-        c.total_compra or 0
-        for c in compras
-        if c.status == "ESTORNADA"
-    )
-
-    html = render_template(
-        "fitcell/relatorios/compras_estoque_pdf.html",
-        compras=compras,
-        total_ativo=total_ativo,
-        total_estornado=total_estornado,
-        data_ini=data_ini,
-        data_fim=data_fim
-    )
-
-    pdf = HTML(
-        string=html,
-        base_url=request.url_root
-    ).write_pdf()
-
-    response = make_response(pdf)
-    response.headers["Content-Type"] = "application/pdf"
-    response.headers["Content-Disposition"] = (
-        "inline; filename=compras_estoque.pdf"
-    )
-
-    return response
-
 @bp.route("/fitcell/compras/estoque/<int:compra_id>/estornar", methods=["POST"])
 @login_required
 @requer_licenca_ativa
@@ -1122,6 +1033,95 @@ def fitcell_nova_compra_estoque():
     )
 
 
+from datetime import datetime
+from flask import request, make_response, render_template
+from weasyprint import HTML
+from sqlalchemy import func
+
+@bp.route("/fitcell/relatorios/compras-estoque/pdf")
+@login_required
+@requer_licenca_ativa
+@requer_permissao("estoque", "ver")
+def fitcell_relatorio_compras_estoque_pdf():
+
+    data_ini = request.args.get("data_ini")
+    data_fim = request.args.get("data_fim")
+    fornecedor_id = request.args.get("fornecedor_id")
+
+    query = (
+        db.session.query(
+            CompraEstoque.id,
+            CompraEstoque.criado_em,
+            Fornecedor.nome.label("fornecedor"),
+            CompraEstoque.status,
+            func.sum(
+                CompraEstoqueItem.quantidade *
+                CompraEstoqueItem.custo_unitario
+            ).label("total_compra")
+        )
+        .join(Fornecedor, Fornecedor.id == CompraEstoque.fornecedor_id)
+        .join(CompraEstoqueItem, CompraEstoqueItem.compra_id == CompraEstoque.id)
+        .filter(CompraEstoque.empresa_id == current_user.empresa_id)
+        .group_by(
+            CompraEstoque.id,
+            CompraEstoque.criado_em,
+            Fornecedor.nome,
+            CompraEstoque.status
+        )
+    )
+
+    # =========================
+    # FILTROS
+    # =========================
+    if fornecedor_id:
+        query = query.filter(CompraEstoque.fornecedor_id == fornecedor_id)
+
+    dt_ini, dt_fim = periodo_datetime(data_ini, data_fim)
+
+    if dt_ini:
+        query = query.filter(CompraEstoque.criado_em >= dt_ini)
+    if dt_fim:
+        query = query.filter(CompraEstoque.criado_em <= dt_fim)
+
+    compras = query.order_by(CompraEstoque.criado_em.desc()).all()
+
+    # =========================
+    # TOTAIS
+    # =========================
+    total_ativo = sum(
+        c.total_compra or 0
+        for c in compras
+        if c.status != "ESTORNADA"
+    )
+
+    total_estornado = sum(
+        c.total_compra or 0
+        for c in compras
+        if c.status == "ESTORNADA"
+    )
+
+    html = render_template(
+        "fitcell/relatorios/compras_estoque_pdf.html",
+        compras=compras,
+        total_ativo=total_ativo,
+        total_estornado=total_estornado,
+        data_ini=data_ini,
+        data_fim=data_fim
+    )
+
+    pdf = HTML(
+        string=html,
+        base_url=request.url_root
+    ).write_pdf()
+
+    response = make_response(pdf)
+    response.headers["Content-Type"] = "application/pdf"
+    response.headers["Content-Disposition"] = (
+        "inline; filename=compras_estoque.pdf"
+    )
+
+    return response
+
 ### VENDA PEÇA MANUAL ####
 
 from datetime import datetime
@@ -1178,64 +1178,6 @@ def fitcell_listar_vendas_pecas():
 
     return render_template(
         "fitcell/vendas_peca_listar.html",
-        vendas=pagination.items,
-        pagination=pagination,
-        busca=busca,
-        data_ini=data_ini,
-        data_fim=data_fim
-    )
-
-@bp.route("/fitcell_mobile/vendas/pecas", endpoint="fitcell_listar_vendas_pecas_mobile")
-@login_required
-@requer_licenca_ativa
-@requer_permissao("venda", "ver")
-def fitcell_listar_vendas_pecas_mobile():
-
-    page = request.args.get("page", 1, type=int)
-    busca = request.args.get("busca", "")
-    data_ini = request.args.get("data_ini")
-    data_fim = request.args.get("data_fim")
-
-    query = (
-        db.session.query(
-            VendaPeca,
-            func.coalesce(func.sum(VendaPecaItem.quantidade), 0).label("qtd_itens")
-        )
-        .outerjoin(VendaPecaItem, VendaPecaItem.venda_id == VendaPeca.id)
-        .filter(VendaPeca.empresa_id == current_user.empresa_id,
-                VendaPeca.status != "ORCAMENTO"   # 👈 ESSENCIAL
-                )
-        
-        .group_by(VendaPeca.id)
-        .order_by(VendaPeca.criado_em.desc())
-    )
-
-
-    # =========================
-    # BUSCA
-    # =========================
-    if busca:
-        query = query.filter(
-            db.or_(
-                VendaPeca.cliente_nome.ilike(f"%{busca}%"),
-                VendaPeca.cliente_telefone.ilike(f"%{busca}%")
-            )
-        )
-
-    # =========================
-    # FILTRO DE DATAS (OPCIONAL)
-    # =========================
-    dt_ini, dt_fim = periodo_datetime(data_ini, data_fim)
-
-    if dt_ini:
-        query = query.filter(VendaPeca.criado_em >= dt_ini)
-    if dt_fim:
-        query = query.filter(VendaPeca.criado_em <= dt_fim)
-
-    pagination = query.paginate(page=page, per_page=20)
-
-    return render_template(
-        "fitcell/vendas_peca_listar_mobile.html",
         vendas=pagination.items,
         pagination=pagination,
         busca=busca,
@@ -1356,118 +1298,6 @@ def fitcell_receber_via_pix():
         url_for("routes.fitcell_ver_venda_peca", id=venda.id)
     )
 
-@bp.route("/fitcell_mobile/vendas/pecas/receber-pix", methods=["POST"])
-@login_required
-@requer_licenca_ativa
-@requer_permissao("venda", "criar")
-def fitcell_receber_via_pix_mobile():
-
-    form = VendaPecaForm()
-
-    # ========= MODELO =========
-    form.modelo_celular_id.choices = [
-        (m.id, f"{m.marca.nome} {m.nome}".strip())
-        for m in ModeloCelular.query_empresa()
-        .filter_by(ativo=True)
-        .order_by(ModeloCelular.nome)
-        .all()
-    ]
-
-    if not form.validate():
-        flash("Dados inválidos na venda.", "danger")
-        return redirect(request.referrer)
-
-    pecas_ids = request.form.getlist("peca_id[]")
-    quantidades = request.form.getlist("quantidade[]")
-    valores = request.form.getlist("valor_unitario[]")
-
-    if not pecas_ids:
-        flash("Adicione pelo menos uma peça.", "danger")
-        return redirect(request.referrer)
-
-    # ========= CRIA VENDA (SEM BAIXAR ESTOQUE) =========
-    venda = VendaPeca(
-        empresa_id=current_user.empresa_id,
-        modelo_celular_id=form.modelo_celular_id.data,
-        cliente_nome=form.cliente_nome.data,
-        cliente_telefone=form.cliente_telefone.data,
-        tipo_pagamento="pix",
-        desconto=form.desconto.data or 0,
-        status="AGUARDANDO_PAGAMENTO",
-        origem="manual",
-        criado_em=utc_now()
-    )
-
-    db.session.add(venda)
-    db.session.flush()
-
-    total_venda = 0
-
-    for peca_id, qtd, valor in zip(pecas_ids, quantidades, valores):
-
-        quantidade = int(qtd)
-        valor_unitario = Decimal(valor)
-
-        if quantidade <= 0:
-            continue
-
-        valor_total_item = quantidade * valor_unitario
-        total_venda += valor_total_item
-
-        db.session.add(
-            VendaPecaItem(
-                venda_id=venda.id,
-                peca_id=int(peca_id),
-                quantidade=quantidade,
-                valor_unitario=valor_unitario,
-                valor_total=valor_total_item
-            )
-        )
-
-    total_venda -= Decimal(venda.desconto or 0)
-    venda.valor_total = total_venda
-
-    # ========= MERCADO PAGO =========
-    mp = MercadoPagoClient(current_user.empresa_id)
-
-    telefone = venda.cliente_telefone or venda.id
-    telefone = ''.join(filter(str.isdigit, str(telefone)))
-
-    email_cliente = f"cliente{telefone}@fitcell.com.br"
-
-
-
-    pagamento = mp.criar_pagamento(
-        valor=venda.valor_total,
-        descricao=f"Venda FITCELL #{venda.id}",
-        email=email_cliente
-    )
-
-    venda.pagamento_id = str(pagamento["id"])
-    venda.pagamento_status = pagamento["status"]
-
-    poi = pagamento.get("point_of_interaction", {})
-    tx = poi.get("transaction_data")
-
-    if not tx:
-        current_app.logger.error(f"PIX não gerado: {pagamento}")
-
-        flash(
-            "Não foi possível gerar o QR Code Pix. Verifique os dados e tente novamente.",
-            "danger"
-        )
-        db.session.rollback()
-        return redirect(request.referrer)
-
-    venda.pix_qr_code = tx.get("qr_code")
-    venda.pix_qr_code_base64 = tx.get("qr_code_base64")
-
-
-    db.session.commit()
-
-    return redirect(
-        url_for("routes.fitcell_ver_venda_peca_mobile", id=venda.id)
-    )
 
 @bp.route("/fitcell/vendas/pecas/<int:id>/status")
 @login_required
@@ -1507,22 +1337,7 @@ def fitcell_ver_venda_peca(id):
         venda=venda
     )
 
-@bp.route("/fitcell_mobile/vendas/pecas/<int:id>", endpoint="fitcell_ver_venda_peca_mobile")
-@login_required
-@requer_licenca_ativa
-@requer_permissao("venda", "ver")
-def fitcell_ver_venda_peca_mobile(id):
 
-    venda = (
-        VendaPeca.query_empresa()
-        .filter_by(id=id)
-        .first_or_404()
-    )
-
-    return render_template(
-        "fitcell/vendas_peca_detalhe_mobile.html",
-        venda=venda
-    )
 
 
 @bp.route("/fitcell/vendas/pecas/nova", methods=["GET", "POST"])
@@ -1669,148 +1484,6 @@ def fitcell_nova_venda_peca():
     )
 
 
-@bp.route("/fitcell_mobile/vendas/pecas/nova", methods=["GET", "POST"])
-@login_required
-@requer_licenca_ativa
-@requer_permissao("venda", "criar")
-def fitcell_nova_venda_peca_mobile():
-
-    form = VendaPecaForm()
-
-    # ==========================
-    # MODELOS DE CELULAR
-    # ==========================
-    form.modelo_celular_id.choices = [
-        (m.id, f"{m.marca.nome} {m.nome} {m.variante}".strip())
-        for m in (
-            ModeloCelular.query_empresa()
-            .filter_by(ativo=True)
-            .order_by(ModeloCelular.nome)
-            .all()
-        )
-    ]
-
-    pecas = []
-
-    # ==========================
-    # FILTRA PEÇAS PELO MODELO
-    # ==========================
-    modelo_id = request.args.get("modelo_id", type=int)
-
-    if modelo_id:
-        form.modelo_celular_id.data = modelo_id
-
-        pecas = (
-            Peca.query_empresa()
-            .join(CompatibilidadePeca)
-            .filter(
-                CompatibilidadePeca.modelo_celular_id == modelo_id,
-                Peca.ativo == True
-            )
-            .order_by(Peca.id.desc())
-            .all()
-        )
-
-    # ==========================
-    # SUBMIT DA VENDA
-    # ==========================
-    if request.method == "POST" and form.validate():
-
-        pecas_ids = request.form.getlist("peca_id[]")
-        quantidades = request.form.getlist("quantidade[]")
-        valores = request.form.getlist("valor_unitario[]")
-
-        if not pecas_ids:
-            flash("Adicione pelo menos uma peça na venda.", "danger")
-            return redirect(request.url)
-
-        venda = VendaPeca(
-            empresa_id=current_user.empresa_id,
-            modelo_celular_id=form.modelo_celular_id.data,
-            cliente_nome=form.cliente_nome.data,
-            cliente_telefone=form.cliente_telefone.data,
-            tipo_pagamento=form.tipo_pagamento.data,
-            desconto=form.desconto.data or 0,
-            status="FINALIZADA",
-            origem="manual",
-            criado_em=utc_now(),
-            pago_em=utc_now()
-        )
-
-        db.session.add(venda)
-        db.session.flush()  # gera venda.id
-
-        total_venda = 0
-
-        for peca_id, qtd, valor in zip(pecas_ids, quantidades, valores):
-
-            peca_id = int(peca_id)
-            quantidade = int(qtd)
-            valor_unitario = float(valor)
-
-            if quantidade <= 0:
-                continue
-
-            valor_total_item = quantidade * valor_unitario
-            total_venda += valor_total_item
-
-            # ITEM DA VENDA
-            db.session.add(
-                VendaPecaItem(
-                    venda_id=venda.id,
-                    peca_id=peca_id,
-                    quantidade=quantidade,
-                    valor_unitario=valor_unitario,
-                    valor_total=valor_total_item
-                )
-            )
-
-            # MOVIMENTAÇÃO DE ESTOQUE (SAÍDA)
-            db.session.add(
-                EstoqueMovimentacao(
-                    empresa_id=current_user.empresa_id,
-                    peca_id=peca_id,
-                    tipo="saida",
-                    quantidade=quantidade,
-                    observacao=f"Venda #{venda.id}",
-                    criado_em=utc_now()
-                )
-            )
-
-            # ATUALIZA ESTOQUE
-            estoque = (
-                EstoquePeca.query_empresa()
-                .filter_by(peca_id=peca_id)
-                .first()
-            )
-
-            if not estoque:
-                estoque = EstoquePeca(
-                    empresa_id=current_user.empresa_id,
-                    peca_id=peca_id,
-                    quantidade=0
-                )
-                db.session.add(estoque)
-
-            estoque.quantidade -= quantidade
-
-        # DESCONTO GERAL
-        total_venda -= float(venda.desconto or 0)
-        venda.valor_total = total_venda
-
-        db.session.commit()
-
-        flash("Venda registrada com sucesso!", "success")
-        return redirect(
-            url_for("routes.fitcell_ver_venda_peca", id=venda.id)
-        )
-
-
-    return render_template(
-        "fitcell/vendas_peca_form_mobile.html",
-        form=form,
-        pecas=pecas
-    )
 
 
 @bp.route("/fitcell/vendas/pecas/<int:id>/cancelar", methods=["POST"])

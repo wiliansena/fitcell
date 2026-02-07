@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Peças</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+
+<link rel="stylesheet" href="{{ url_for('static', filename='paginas3.css') }}">
+
+<style>
+body{background:#eef4fb;}
+.mobile-container{padding:12px;max-width:540px;margin:auto;}
+.card-peca{background:#fff;border-radius:16px;padding:12px;box-shadow:0 6px 18px rgba(0,0,0,.08);margin-bottom:12px;}
+.peca-img{width:70px;height:70px;border-radius:12px;object-fit:cover;}
+</style>
+</head>
+
+<body>
+
+<div class="mobile-container">
+
+{% include "_flash_messages.html" %}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+<strong style="font-size:18px">Peças</strong>
+
+<a href="{{ url_for('routes.home_mobile') }}" class="btn btn-secondary btn-sm">Voltar</a>
+</div>
+
+<form method="GET" class="mb-3">
+<input type="text" name="busca" value="{{ busca }}" class="form-control"
+placeholder="Buscar peça">
+</form>
+
+<a href="{{ url_for('routes.fitcell_nova_peca_mobile') }}" class="btn btn-success w-100 mb-3">
+Nova Peça
+</a>
+
+{% for p, estoque in pecas.items %}
+
+<div class="card-peca">
+
+<div class="d-flex gap-3 align-items-start">
+
+{% if p.imagem %}
+<img src="{{ url_for('static', filename=p.imagem) }}" class="peca-img">
+{% else %}
+<div class="peca-img bg-light d-flex align-items-center justify-content-center text-muted">
+<i class="fa fa-image"></i>
+</div>
+{% endif %}
+
+<div class="flex-fill">
+
+<div class="fw-semibold text-primary">{{ p.nome }}</div>
+<small class="text-muted">{{ p.codigo_interno or "-" }}</small>
+
+<div class="mt-1">
+Preço: <strong>R$ {{ "%.2f"|format(p.preco_venda or 0) }}</strong>
+</div>
+
+<div class="mt-1 d-flex align-items-center gap-2">
+
+{% set qtd = estoque or 0 %}
+{% if qtd == 0 %}
+<span class="badge bg-danger">0</span>
+{% elif qtd <=5 %}
+<span class="badge bg-warning text-dark">{{ qtd }}</span>
+{% else %}
+<span class="badge bg-success">{{ qtd }}</span>
+{% endif %}
+
+{% if p.ativo %}
+<span class="badge bg-success-subtle text-success">Ativa</span>
+{% else %}
+<span class="badge bg-secondary-subtle">Inativa</span>
+{% endif %}
+
+</div>
+
+</div>
+
+<div class="d-flex flex-column gap-2">
+
+<a href="{{ url_for('routes.fitcell_editar_peca_mobile', id=p.id) }}"
+class="btn btn-outline-warning btn-sm">
+<i class="fas fa-pen"></i>
+</a>
+
+<form method="POST"
+action="{{ url_for('routes.fitcell_excluir_peca_mobile', id=p.id) }}"
+onsubmit="return confirm('Deseja excluir esta peça?')">
+
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+<button class="btn btn-outline-danger btn-sm">
+<i class="fas fa-trash"></i>
+</button>
+
+</form>
+
+</div>
+
+</div>
+
+</div>
+
+{% endfor %}
+
+
+{% if pecas.pages > 1 %}
+
+<div class="d-flex justify-content-between mt-3">
+
+{% if pecas.has_prev %}
+<a class="btn btn-secondary"
+href="{{ url_for(request.endpoint,page=pecas.prev_num,busca=busca) }}">Anterior</a>
+{% else %}<div></div>{% endif %}
+
+{% if pecas.has_next %}
+<a class="btn btn-secondary"
+href="{{ url_for(request.endpoint,page=pecas.next_num,busca=busca) }}">Próxima</a>
+{% endif %}
+
+</div>
+
+{% endif %}
+
+</div>
+
+</body>
+</html>
