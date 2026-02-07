@@ -1274,7 +1274,7 @@ def fitcell_nova_venda_peca_mobile():
 
         flash("Venda registrada com sucesso!", "success")
         return redirect(
-            url_for("routes.fitcell_ver_venda_peca", id=venda.id)
+            url_for("routes.fitcell_ver_venda_peca_mobile", id=venda.id)
         )
 
 
